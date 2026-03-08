@@ -3,496 +3,672 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>REX CLOUD | Professional Encrypted Storage Terminal</title>
+    <title>REX CLOUD | Enterprise Encryption Terminal</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Poppins:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        /* Base Themes & Variables */
+        /* REX CLOUD CORE CSS ENGINE
+           Visual Style: Dark Moody / Glassmorphism / Cyberpunk 
+        */
         :root {
-            --accent: #ff416c;
-            --accent-glow: rgba(255, 65, 108, 0.4);
-            --bg-master: #030308;
-            --glass-core: rgba(255, 255, 255, 0.02);
+            --accent-primary: #ff416c;
+            --accent-secondary: #ff4b2b;
+            --neon-blue: #00d2ff;
+            --neon-purple: #9d50bb;
+            --bg-deep: #020205;
+            --glass-white: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.08);
-            --neon-blue: #00f2fe;
+            --storage-gradient: linear-gradient(90deg, #ff416c, #ffb347, #00d2ff);
         }
 
-        /* Aesthetics */
+        /* Basic Setup */
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
-            background: radial-gradient(circle at 0% 0%, #12122b 0%, var(--bg-master) 50%);
-            color: #f0f0f0;
+            background-color: var(--bg-deep);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 65, 108, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 210, 255, 0.05) 0%, transparent 40%);
+            color: #ffffff;
             font-family: 'Poppins', sans-serif;
             min-height: 100vh;
             overflow-x: hidden;
-            user-select: none;
         }
 
-        .orbitron { font-family: 'Orbitron', sans-serif; letter-spacing: 3px; }
+        .orbitron { font-family: 'Orbitron', sans-serif; letter-spacing: 4px; }
 
-        /* Advanced Glassmorphism */
-        .glass-panel {
-            background: var(--glass-core);
-            backdrop-filter: blur(40px);
-            -webkit-backdrop-filter: blur(40px);
+        /* Scrollbar Redesign */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg-deep); }
+        ::-webkit-scrollbar-thumb { background: var(--accent-primary); border-radius: 10px; }
+
+        /* High-End Glassmorphism */
+        .glass-card {
+            background: var(--glass-white);
+            backdrop-filter: blur(35px);
+            -webkit-backdrop-filter: blur(35px);
             border: 1px solid var(--glass-border);
             border-radius: 35px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
+        .glass-card:hover { border-color: rgba(255, 255, 255, 0.15); }
 
-        /* Custom Input Styling */
-        .terminal-input {
-            background: rgba(255, 255, 255, 0.03);
+        /* Input Fields */
+        .rex-input {
+            background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 20px;
-            padding: 18px;
+            padding: 20px;
             color: white;
             font-size: 14px;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             width: 100%;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .rex-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            background: rgba(255, 65, 108, 0.05);
+            box-shadow: 0 0 25px rgba(255, 65, 108, 0.2);
+            transform: translateY(-2px);
         }
 
-        .terminal-input:focus {
-            border-color: var(--accent);
-            background: rgba(255, 255, 255, 0.06);
-            box-shadow: 0 0 20px var(--accent-glow);
-            transform: scale(1.02);
-        }
-
-        /* Button Effects */
-        .btn-prime {
-            background: linear-gradient(45deg, #ff416c, #ff4b2b);
-            border-radius: 20px;
-            font-weight: 700;
+        /* Buttons */
+        .rex-btn-primary {
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 22px;
+            padding: 18px;
+            font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 2px;
+            box-shadow: 0 10px 30px rgba(255, 65, 108, 0.3);
             transition: 0.5s;
-            position: relative;
-            overflow: hidden;
+            border: none;
+            cursor: pointer;
         }
+        .rex-btn-primary:active { transform: scale(0.96); }
 
-        .btn-prime:active { transform: scale(0.95); }
-
-        /* Storage Bar & Animations */
-        .bar-container { height: 12px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; }
-        .bar-fill {
+        /* Progress Engine */
+        .storage-bar-bg { height: 14px; background: rgba(0,0,0,0.4); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
+        #storage-bar-fill {
             height: 100%;
-            background: linear-gradient(90deg, #ff416c, #ffb347);
             width: 0%;
-            transition: width 2s cubic-bezier(0.65, 0, 0.35, 1);
-            box-shadow: 0 0 15px var(--accent-glow);
+            background: var(--storage-gradient);
+            background-size: 200% 200%;
+            animation: gradientMove 3s linear infinite;
+            box-shadow: 0 0 20px var(--accent-primary);
+            transition: width 2s cubic-bezier(0.19, 1, 0.22, 1);
         }
+        @keyframes gradientMove { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
 
-        /* Dust Overlay */
-        #dust-canvas-layer { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; }
+        /* Dust Particles Container */
+        #dust-canvas-container { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 99999; }
 
-        /* Navigation Hidden Scroll */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        /* Category Chips */
+        .chip { padding: 12px 24px; border-radius: 18px; font-size: 10px; font-weight: 800; letter-spacing: 1px; transition: 0.4s; border: 1px solid rgba(255,255,255,0.05); background: rgba(255,255,255,0.02); }
+        .chip.active { background: var(--accent-primary); border-color: var(--accent-primary); box-shadow: 0 5px 20px rgba(255, 65, 108, 0.4); }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-entry { animation: fadeIn 0.8s ease forwards; }
     </style>
 </head>
 <body>
 
-    <div id="dust-canvas-layer"></div>
+    <div id="dust-canvas-container"></div>
 
-    <section id="view-auth" class="min-h-screen flex items-center justify-center p-8">
-        <div class="glass-panel p-12 w-full max-w-lg text-center">
-            <h1 class="orbitron text-5xl font-black mb-4 italic text-white">REX CLOUD</h1>
-            <p class="text-[10px] tracking-[8px] text-gray-600 mb-12 uppercase">Military Grade Encryption Active</p>
+    <section id="screen-auth" class="min-h-screen flex items-center justify-center p-6">
+        <div class="glass-card p-12 w-full max-w-lg text-center animate-entry">
+            <h1 class="orbitron text-5xl font-black mb-2 italic">REX CLOUD</h1>
+            <p class="text-[9px] tracking-[10px] text-gray-500 mb-12 uppercase font-bold">Encrypted Quantum Storage</p>
             
-            <div class="space-y-6">
-                <input type="email" id="auth-mail" placeholder="ADMIN EMAIL" class="terminal-input">
-                <input type="password" id="auth-pass" placeholder="SECURITY KEY" class="terminal-input">
-                <button onclick="initSequence()" class="btn-prime w-full py-5 mt-4">Initialize Terminal</button>
-            </div>
-            <div class="mt-12 flex justify-center gap-6 opacity-30 text-xs">
-                <span><i class="fas fa-lock"></i> AES-256</span>
-                <span><i class="fas fa-server"></i> NODE-74</span>
-                <span><i class="fas fa-shield-virus"></i> SECURE</span>
-            </div>
-        </div>
-    </section>
-
-    <section id="view-lock" class="min-h-screen flex flex-col items-center justify-center p-8 hidden">
-        <div class="glass-panel p-10 w-full max-w-sm text-center">
-            <div class="h-20 w-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-red-500/20">
-                <i class="fas fa-fingerprint text-4xl text-red-600 animate-pulse"></i>
-            </div>
-            <h2 class="orbitron text-sm mb-12 tracking-[5px] text-gray-400">VERIFY IDENTITY</h2>
-            
-            <div id="pin-dots" class="flex justify-center gap-4 mb-12">
-                <div class="h-3 w-3 rounded-full border border-red-500/50"></div>
-                <div class="h-3 w-3 rounded-full border border-red-500/50"></div>
-                <div class="h-3 w-3 rounded-full border border-red-500/50"></div>
-                <div class="h-3 w-3 rounded-full border border-red-500/50"></div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-6" id="pin-keyboard">
+            <div id="auth-form" class="space-y-6">
+                <div class="relative">
+                    <i class="fas fa-envelope absolute left-5 top-6 text-gray-600"></i>
+                    <input type="email" id="input-email" placeholder="ADMIN EMAIL" class="rex-input pl-14">
                 </div>
+                <div class="relative">
+                    <i class="fas fa-lock absolute left-5 top-6 text-gray-600"></i>
+                    <input type="password" id="input-pass" placeholder="MASTER PASS" class="rex-input pl-14">
+                </div>
+                <button onclick="handleAuth()" class="rex-btn-primary w-full mt-4">Execute Login</button>
+            </div>
+            
+            <div class="mt-12 flex justify-center gap-6 text-[10px] text-gray-700 font-bold uppercase tracking-widest">
+                <span><i class="fas fa-shield-alt mr-1"></i> SSL</span>
+                <span><i class="fas fa-key mr-1"></i> AES-256</span>
+                <span><i class="fas fa-microchip mr-1"></i> V10.0</span>
+            </div>
         </div>
     </section>
 
-    <section id="view-main" class="min-h-screen p-6 hidden max-w-2xl mx-auto pb-32">
+    <section id="screen-lock" class="min-h-screen flex flex-col items-center justify-center p-8 hidden">
+        <div class="glass-card p-12 w-full max-w-sm text-center animate-entry">
+            <div class="relative inline-block mb-10">
+                <div class="absolute inset-0 bg-red-500 blur-2xl opacity-20 animate-pulse"></div>
+                <div class="h-24 w-24 bg-red-500/10 rounded-full flex items-center justify-center border border-red-500/30 relative">
+                    <i class="fas fa-fingerprint text-5xl text-red-500"></i>
+                </div>
+            </div>
+            
+            <h2 class="orbitron text-xs mb-10 tracking-[6px] text-gray-400">IDENTITY VERIFICATION</h2>
+            
+            <div id="pin-indicator" class="flex justify-center gap-5 mb-12">
+                <div class="h-4 w-4 rounded-full border-2 border-red-500/30 transition-all duration-300"></div>
+                <div class="h-4 w-4 rounded-full border-2 border-red-500/30 transition-all duration-300"></div>
+                <div class="h-4 w-4 rounded-full border-2 border-red-500/30 transition-all duration-300"></div>
+                <div class="h-4 w-4 rounded-full border-2 border-red-500/30 transition-all duration-300"></div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-6" id="digital-keypad">
+                </div>
+            
+            <button onclick="logout()" class="mt-10 text-[9px] font-black uppercase tracking-[5px] text-gray-700 hover:text-red-500 transition">Kill Session</button>
+        </div>
+    </section>
+
+    <section id="screen-dashboard" class="min-h-screen p-6 hidden max-w-2xl mx-auto pb-32">
+        
         <header class="flex justify-between items-center py-8">
-            <div>
+            <div class="animate-entry">
                 <h1 class="orbitron text-2xl font-black italic">REX CLOUD</h1>
-                <p class="text-[10px] font-bold text-gray-600" id="user-tag"></p>
+                <div class="flex items-center gap-2">
+                    <div class="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest" id="display-user"></p>
+                </div>
             </div>
-            <div class="flex gap-4">
-                <button onclick="switchView('view-settings')" class="glass-panel h-14 w-14 flex items-center justify-center text-gray-400 hover:text-white transition">
-                    <i class="fas fa-sliders-h text-lg"></i>
-                </button>
-            </div>
+            <button onclick="navigateTo('screen-settings')" class="glass-card h-14 w-14 flex items-center justify-center text-gray-500 hover:text-white transition">
+                <i class="fas fa-cog text-xl"></i>
+            </button>
         </header>
 
-        <div class="glass-panel p-8 mb-8 relative overflow-hidden">
+        <div class="glass-card p-8 mb-8 relative overflow-hidden animate-entry" style="animation-delay: 0.1s">
             <div class="flex justify-between items-end mb-6">
                 <div>
-                    <h2 class="text-4xl font-black orbitron text-white" id="stat-gb">0.00</h2>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1">GB SECURED IN CLOUD</p>
+                    <h3 class="text-4xl font-black orbitron text-white" id="stat-used-gb">0.00</h3>
+                    <p class="text-[10px] text-gray-600 uppercase tracking-widest font-bold mt-1">Gigabytes Occupied</p>
                 </div>
                 <div class="text-right">
-                    <p class="text-[10px] font-bold text-red-500 mb-2">QUOTA: 1024 GB</p>
-                    <p class="text-xs font-black" id="stat-percent">0.00%</p>
+                    <p class="text-[9px] font-black text-red-500 mb-1">THRESHOLD: 1,024 GB</p>
+                    <p class="text-xs font-black text-white" id="stat-percent-label">0.00%</p>
                 </div>
             </div>
-            <div class="bar-container mb-2">
-                <div id="main-bar" class="bar-fill"></div>
+            <div class="storage-bar-bg mb-2">
+                <div id="storage-bar-fill"></div>
+            </div>
+            
+            <div id="pro-alert-box" class="mt-8 hidden animate-entry">
+                <button onclick="contactAdminForPro()" class="rex-btn-primary w-full py-5 flex items-center justify-center gap-4 border-2 border-white/10">
+                    <i class="fas fa-crown text-yellow-400"></i>
+                    <span>UPGRADE TO PRO TERMINAL</span>
+                </button>
             </div>
         </div>
 
-        <div id="pro-gate" class="hidden mb-8 scale-in-center">
-            <button onclick="triggerProRequest()" class="btn-prime w-full py-5 rounded-3xl flex items-center justify-center gap-4 border-2 border-white/20">
-                <i class="fas fa-crown"></i>
-                <span>UPDATE TO PRO</span>
-            </button>
+        <div class="flex gap-3 overflow-x-auto pb-8 no-scrollbar animate-entry" style="animation-delay: 0.2s">
+            <button class="chip active" onclick="applyFilter('all', this)">ALL_NODES</button>
+            <button class="chip" onclick="applyFilter('image', this)">VISUALS</button>
+            <button class="chip" onclick="applyFilter('video', this)">VIDEOS</button>
+            <button class="chip" onclick="applyFilter('doc', this)">ARCHIVES</button>
         </div>
 
-        <div class="flex gap-3 overflow-x-auto pb-8 no-scrollbar">
-            <button class="cat-pill active" onclick="filterRepo('all', this)">ALL REPO</button>
-            <button class="cat-pill" onclick="filterRepo('image', this)">IMAGES</button>
-            <button class="cat-pill" onclick="filterRepo('video', this)">VIDEOS</button>
-            <button class="cat-pill" onclick="filterRepo('doc', this)">DOCUMENTS</button>
-        </div>
-
-        <div class="grid grid-cols-2 gap-6 mb-12">
-            <label class="glass-panel p-8 flex flex-col items-center justify-center border-dashed border-2 border-white/5 cursor-pointer hover:bg-white/5 transition">
-                <div class="h-12 w-12 bg-red-500/10 rounded-full flex items-center justify-center mb-4">
-                    <i class="fas fa-cloud-upload-alt text-red-500"></i>
+        <div class="grid grid-cols-2 gap-6 mb-12 animate-entry" style="animation-delay: 0.3s">
+            <label class="glass-card p-8 flex flex-col items-center justify-center border-dashed border-2 border-white/5 cursor-pointer hover:bg-white/5 transition">
+                <div class="h-14 w-14 bg-red-500/10 rounded-2xl flex items-center justify-center mb-4 text-red-500 text-xl border border-red-500/20">
+                    <i class="fas fa-cloud-upload-alt"></i>
                 </div>
-                <span class="text-[10px] font-bold uppercase tracking-widest">Push File</span>
-                <input type="file" class="hidden" onchange="initiateUpload(this)">
+                <span class="text-[10px] font-black uppercase tracking-widest">Push Data</span>
+                <input type="file" id="file-uploader" class="hidden" onchange="initiateTelegramUpload(this)">
             </label>
-            <div onclick="remoteInject()" class="glass-panel p-8 flex flex-col items-center justify-center border-white/5 cursor-pointer hover:bg-white/5 transition">
-                <div class="h-12 w-12 bg-blue-500/10 rounded-full flex items-center justify-center mb-4">
-                    <i class="fas fa-link text-blue-500"></i>
+            <div onclick="openRemotePrompt()" class="glass-card p-8 flex flex-col items-center justify-center border-white/5 cursor-pointer hover:bg-white/5 transition">
+                <div class="h-14 w-14 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-4 text-blue-500 text-xl border border-blue-500/20">
+                    <i class="fas fa-link"></i>
                 </div>
-                <span class="text-[10px] font-bold uppercase tracking-widest">Remote Inject</span>
+                <span class="text-[10px] font-black uppercase tracking-widest">Remote Inject</span>
             </div>
         </div>
 
-        <div id="repo-list">
+        <div id="file-repository-list" class="animate-entry" style="animation-delay: 0.4s">
             <div class="flex justify-between items-center mb-8 px-4">
-                <h4 class="text-xs font-bold uppercase tracking-[5px] text-gray-600">Encrypted Repository</h4>
-                <span class="text-[10px] text-gray-700" id="repo-count">0 OBJECTS</span>
+                <h4 class="text-xs font-black uppercase tracking-[6px] text-gray-600">Encrypted Repository</h4>
+                <span class="text-[10px] font-bold text-gray-700" id="repo-count-label">0 OBJECTS</span>
             </div>
 
-            <div id="repo-container" class="space-y-5">
-                <div id="empty-state" class="text-center py-24 opacity-10">
-                    <i class="fas fa-database text-6xl mb-6"></i>
-                    <p class="orbitron text-xs">NO DATA DETECTED</p>
+            <div id="main-file-container" class="space-y-5">
+                <div id="no-files-view" class="text-center py-28 opacity-10">
+                    <i class="fas fa-hdd text-7xl mb-6"></i>
+                    <p class="orbitron text-[10px] uppercase tracking-[5px]">Repository Empty</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="view-settings" class="fixed inset-0 bg-black/95 z-[100] p-10 hidden overflow-y-auto">
-        <div class="max-w-md mx-auto">
+    <section id="screen-settings" class="fixed inset-0 bg-black/95 z-[1000] p-10 hidden overflow-y-auto">
+        <div class="max-w-md mx-auto animate-entry">
             <div class="flex justify-between items-center mb-16">
-                <h2 class="orbitron text-2xl font-black italic">TERMINAL CONFIG</h2>
-                <button onclick="switchView('view-main')" class="text-4xl text-gray-500 hover:text-white">&times;</button>
+                <h2 class="orbitron text-2xl font-black italic">SYSTEM CONFIG</h2>
+                <button onclick="navigateTo('screen-dashboard')" class="text-4xl text-gray-600 hover:text-white transition">&times;</button>
             </div>
 
             <div class="space-y-10">
-                <div class="glass-panel p-8">
-                    <h5 class="text-[10px] font-black text-red-600 uppercase mb-6 tracking-widest">Security Protocol</h5>
-                    <p class="text-xs text-gray-500 mb-6">Override system 4-digit access PIN</p>
+                <div class="glass-card p-8">
+                    <div class="flex items-center gap-3 mb-6">
+                        <i class="fas fa-user-lock text-red-500"></i>
+                        <h5 class="text-[10px] font-black uppercase tracking-widest text-gray-300">Security Protocol</h5>
+                    </div>
+                    <p class="text-[11px] text-gray-600 mb-6 font-medium">Override system 4-digit master access PIN.</p>
                     <div class="flex gap-4">
-                        <input type="password" id="cfg-pin" maxlength="4" placeholder="NEW PIN" class="terminal-input text-center orbitron text-xl tracking-[12px]">
-                        <button onclick="savePin()" class="bg-white text-black px-8 rounded-2xl font-bold text-[10px] uppercase">Update</button>
+                        <input type="password" id="cfg-new-pin" maxlength="4" placeholder="NEW PIN" class="rex-input text-center orbitron text-xl tracking-[15px]">
+                        <button onclick="commitPinUpdate()" class="bg-white text-black px-10 rounded-2xl font-black text-[10px] uppercase">Update</button>
                     </div>
                 </div>
 
-                <div class="glass-panel p-8">
-                    <h5 class="text-[10px] font-black text-blue-500 uppercase mb-4 tracking-widest">Integration Status</h5>
-                    <div class="space-y-4 text-xs">
-                        <div class="flex justify-between"><span class="text-gray-600">Telegram Bot</span><span class="text-emerald-500">CONNECTED</span></div>
-                        <div class="flex justify-between"><span class="text-gray-600">Storage Node</span><span class="text-emerald-500">8097272918</span></div>
-                        <div class="flex justify-between"><span class="text-gray-600">Version</span><span class="text-gray-400">5.0.0-PRO-BUILD</span></div>
+                <div class="glass-card p-8">
+                    <div class="flex items-center gap-3 mb-6">
+                        <i class="fas fa-server text-blue-500"></i>
+                        <h5 class="text-[10px] font-black uppercase tracking-widest text-gray-300">Terminal Node Status</h5>
+                    </div>
+                    <div class="space-y-5 text-[11px]">
+                        <div class="flex justify-between"><span class="text-gray-600">Telegram API Host</span><span class="text-emerald-500 font-bold">STABLE</span></div>
+                        <div class="flex justify-between"><span class="text-gray-600">Storage Root ID</span><span class="text-white font-bold tracking-widest">8097272918</span></div>
+                        <div class="flex justify-between"><span class="text-gray-600">Encryption Layer</span><span class="text-white font-bold">REX-AES-512</span></div>
+                        <div class="flex justify-between"><span class="text-gray-600">System Version</span><span class="text-gray-500 font-bold">10.0.4-ELITE</span></div>
                     </div>
                 </div>
 
-                <button onclick="location.reload()" class="w-full py-5 border border-white/10 rounded-3xl text-[10px] font-bold uppercase tracking-[4px] text-gray-600 hover:text-red-500 hover:border-red-500/50 transition">Terminate Session</button>
+                <button onclick="location.reload()" class="w-full py-6 glass-card border-red-500/20 text-red-500 font-black text-[10px] uppercase tracking-[5px] hover:bg-red-500/10 transition">Terminate All Sessions</button>
             </div>
         </div>
     </section>
 
     <script>
-        // -------------------------------------------------------------------------------------
-        // 1. SYSTEM CONFIGURATION & GLOBAL STATE
-        // -------------------------------------------------------------------------------------
-        const SYSTEM = {
-            TOKEN: '8664449438:AAFEvs3o65mnfIuaZSC06kfcZ_09VoAFg90', // Telegram API
-            CHAT: '8097272918', // Telegram ID
-            ADMIN: '94767531213', // WhatsApp Contact
-            STORAGE_MAX: 1024 * 1024 * 1024 * 1024, // 1TB
-            DB_KEY: 'REX_MASTER_DB_V5',
-            PIN_KEY: 'REX_MASTER_PIN'
+        /* THE REX CLOUD TITAN ENGINE
+           Handles: Auth, Security, Telegram API, Storage Stats, Animations, etc.
+        */
+
+        // 1. SYSTEM CONFIGURATION
+        const REX_ENV = {
+            BOT_TOKEN: '8664449438:AAFEvs3o65mnfIuaZSC06kfcZ_09VoAFg90',
+            CHAT_ID: '8097272918',
+            ADMIN_WA: '94767531213',
+            MAX_BYTES: 1024 * 1024 * 1024 * 1024, // 1 Terabyte
+            DB_STORAGE_NAME: 'REX_TITAN_VAULT_DATA',
+            PIN_STORAGE_NAME: 'REX_TITAN_MASTER_PIN'
         };
 
-        let REPO = JSON.parse(localStorage.getItem(SYSTEM.DB_KEY)) || [];
-        let MASTER_PIN = localStorage.getItem(SYSTEM.PIN_KEY) || '1234';
-        let pinBuffer = "";
+        // 2. GLOBAL STATE
+        let TITAN_DB = JSON.parse(localStorage.getItem(REX_ENV.DB_STORAGE_NAME)) || [];
+        let CURRENT_PIN = localStorage.getItem(REX_ENV.PIN_STORAGE_NAME) || '1234';
+        let tempPinInput = "";
+        let isProTriggered = false;
 
-        // -------------------------------------------------------------------------------------
-        // 2. NAVIGATION & AUTH LOGIC
-        // -------------------------------------------------------------------------------------
-        function initSequence() {
-            const mail = document.getElementById('auth-mail').value;
-            if(!mail.includes('@')) return alert("INVALID ACCESS IDENTIFIER");
-            document.getElementById('user-tag').innerText = mail.toUpperCase();
-            switchView('view-lock');
+        // 3. INITIALIZATION & NAVIGATION
+        function handleAuth() {
+            const email = document.getElementById('input-email').value;
+            const pass = document.getElementById('input-pass').value;
+
+            if(!email.includes('@') || pass.length < 4) {
+                alert("SECURITY ALERT: INVALID TERMINAL CREDENTIALS");
+                return;
+            }
+
+            document.getElementById('display-user').innerText = email.toUpperCase();
+            navigateTo('screen-lock');
             renderKeypad();
         }
 
-        function renderKeypad() {
-            const kb = document.getElementById('pin-keyboard');
-            kb.innerHTML = [...Array(9).keys()].map(i => `<button onclick="keyInput('${i+1}')" class="glass-panel py-6 orbitron text-xl hover:bg-white/10 transition">${i+1}</button>`).join('') + 
-                           `<button onclick="keyInput('0')" class="glass-panel py-6 orbitron text-xl col-start-2 hover:bg-white/10 transition">0</button>`;
+        function navigateTo(screenId) {
+            const screens = ['screen-auth', 'screen-lock', 'screen-dashboard', 'screen-settings'];
+            screens.forEach(s => document.getElementById(s).classList.add('hidden'));
+            
+            const target = document.getElementById(screenId);
+            target.classList.remove('hidden');
+            target.style.opacity = 0;
+            setTimeout(() => target.style.opacity = 1, 50);
         }
 
-        function keyInput(val) {
-            if(pinBuffer.length < 4) {
-                pinBuffer += val;
-                updatePinVisuals();
-                if(pinBuffer.length === 4) {
+        function renderKeypad() {
+            const container = document.getElementById('digital-keypad');
+            container.innerHTML = "";
+            
+            // Standard Keypad 1-9
+            for(let i=1; i<=9; i++) {
+                const btn = document.createElement('button');
+                btn.className = "glass-card py-6 orbitron text-2xl font-black hover:bg-white/10 transition active:scale-90";
+                btn.innerText = i;
+                btn.onclick = () => handlePinPress(i.toString());
+                container.appendChild(btn);
+            }
+            
+            // Empty / 0 / Fingerprint UI
+            const empty = document.createElement('div');
+            container.appendChild(empty);
+
+            const zero = document.createElement('button');
+            zero.className = "glass-card py-6 orbitron text-2xl font-black hover:bg-white/10 transition active:scale-90";
+            zero.innerText = "0";
+            zero.onclick = () => handlePinPress("0");
+            container.appendChild(zero);
+
+            const finger = document.createElement('button');
+            finger.className = "glass-card py-6 text-red-500 text-2xl hover:bg-red-500/10 transition active:scale-90";
+            finger.innerHTML = `<i class="fas fa-fingerprint"></i>`;
+            finger.onclick = () => alert("BIOMETRIC SCANNING INITIALIZED...");
+            container.appendChild(finger);
+        }
+
+        function handlePinPress(num) {
+            if(tempPinInput.length < 4) {
+                tempPinInput += num;
+                updatePinDots();
+
+                if(tempPinInput.length === 4) {
                     setTimeout(() => {
-                        if(pinBuffer === MASTER_PIN) {
-                            switchView('view-main');
-                            refreshUI();
+                        if(tempPinInput === CURRENT_PIN) {
+                            navigateTo('screen-dashboard');
+                            refreshDashboardUI();
                         } else {
-                            alert("ACCESS DENIED - SECURITY VIOLATION");
-                            pinBuffer = "";
-                            updatePinVisuals();
+                            alert("CRITICAL ERROR: PIN INCORRECT. ACCESS DENIED.");
+                            tempPinInput = "";
+                            updatePinDots();
                         }
-                    }, 200);
+                    }, 300);
                 }
             }
         }
 
-        function updatePinVisuals() {
-            const dots = document.querySelectorAll('#pin-dots div');
+        function updatePinDots() {
+            const dots = document.querySelectorAll('#pin-indicator div');
             dots.forEach((dot, i) => {
-                dot.style.background = i < pinBuffer.length ? '#ff416c' : 'transparent';
-                dot.style.boxShadow = i < pinBuffer.length ? '0 0 10px #ff416c' : 'none';
+                if(i < tempPinInput.length) {
+                    dot.style.background = '#ff416c';
+                    dot.style.borderColor = '#ff416c';
+                    dot.style.boxShadow = '0 0 15px #ff416c';
+                    dot.style.transform = 'scale(1.2)';
+                } else {
+                    dot.style.background = 'transparent';
+                    dot.style.borderColor = 'rgba(255, 65, 108, 0.3)';
+                    dot.style.boxShadow = 'none';
+                    dot.style.transform = 'scale(1)';
+                }
             });
         }
 
-        // -------------------------------------------------------------------------------------
-        // 3. STORAGE & TELEGRAM UPLOAD ENGINE
-        // -------------------------------------------------------------------------------------
-        async function initiateUpload(input) {
+        // 4. TELEGRAM CLOUD CORE ENGINE
+        async function initiateTelegramUpload(input) {
             const file = input.files[0];
             if(!file) return;
 
-            const loader = createGlobalLoader(file.name);
-            const data = new FormData();
-            data.append('chat_id', SYSTEM.CHAT);
-            data.append('document', file);
+            // Start Loader
+            const loader = createTitanLoader(file.name);
+            
+            // Prepare Telegram Payload
+            const formData = new FormData();
+            formData.append('chat_id', REX_ENV.CHAT_ID);
+            formData.append('document', file);
+            formData.append('caption', `📡 REX-CLOUD-NODE: ${file.name}\n🔒 Encrypted: AES-256`);
 
             try {
-                const req = await fetch(`https://api.telegram.org/bot${SYSTEM.TOKEN}/sendDocument`, {
+                const response = await fetch(`https://api.telegram.org/bot${REX_ENV.BOT_TOKEN}/sendDocument`, {
                     method: 'POST',
-                    body: data
+                    body: formData
                 });
-                const res = await req.json();
+                
+                const data = await response.json();
 
-                if(res.ok) {
-                    const object = {
-                        id: 'OBJ-' + Date.now(),
+                if(data.ok) {
+                    // Create Virtual File Object
+                    const fileObject = {
+                        uid: 'REX-' + Date.now() + Math.floor(Math.random()*1000),
                         name: file.name,
-                        size: file.size,
-                        type: detectCategory(file.type),
-                        date: new Date().toLocaleDateString(),
-                        msgId: res.result.message_id
+                        rawSize: file.size,
+                        category: categorizeFile(file.type),
+                        timestamp: new Date().toLocaleDateString(),
+                        telegramId: data.result.message_id,
+                        mimeType: file.type
                     };
-                    REPO.unshift(object);
-                    syncLocal();
-                    refreshUI();
-                    alert("OBJECT SECURED IN REPOSITORY");
-                } else throw new Error();
-            } catch (e) {
-                alert("CRITICAL ERROR: UPLOAD INTERRUPTED");
-            } finally { loader.remove(); }
+
+                    TITAN_DB.unshift(fileObject);
+                    saveTitanDB();
+                    refreshDashboardUI();
+                    
+                    // Final UI Feedback
+                    alert("✅ UPLOAD SUCCESS: OBJECT SECURED IN CLOUD NODES");
+                } else {
+                    throw new Error("Telegram Handshake Failed");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("❌ CRITICAL ERROR: CONNECTION TERMINATED OR BOT NOT READY");
+            } finally {
+                loader.remove();
+                input.value = ""; // Reset input
+            }
         }
 
-        function refreshUI(filter = 'all') {
-            const container = document.getElementById('repo-container');
-            const filtered = filter === 'all' ? REPO : REPO.filter(r => r.type === filter);
+        function categorizeFile(mime) {
+            if(mime.includes('image')) return 'image';
+            if(mime.includes('video')) return 'video';
+            return 'doc';
+        }
+
+        function getTitanIcon(cat) {
+            const icons = {
+                image: 'fas fa-image',
+                video: 'fas fa-play-circle',
+                doc: 'fas fa-file-shield'
+            };
+            return icons[cat] || 'fas fa-file-alt';
+        }
+
+        // 5. REPOSITORY RENDER ENGINE
+        function refreshDashboardUI(filter = 'all') {
+            const container = document.getElementById('main-file-container');
+            const emptyView = document.getElementById('no-files-view');
+            const countLabel = document.getElementById('repo-count-label');
+
+            const filteredData = filter === 'all' ? TITAN_DB : TITAN_DB.filter(f => f.category === filter);
             
-            if(REPO.length === 0) {
-                document.getElementById('empty-state').style.display = 'block';
+            countLabel.innerText = `${filteredData.length} OBJECTS DETECTED`;
+
+            if(filteredData.length === 0) {
+                emptyView.classList.remove('hidden');
                 container.innerHTML = "";
             } else {
-                document.getElementById('empty-state').style.display = 'none';
-                container.innerHTML = filtered.map(r => `
-                    <div class="glass-panel p-6 flex justify-between items-center group relative overflow-hidden" id="${r.id}">
+                emptyView.classList.add('hidden');
+                container.innerHTML = filteredData.map(file => `
+                    <div class="glass-card p-6 flex justify-between items-center group relative overflow-hidden" id="${file.uid}">
                         <div class="flex items-center gap-5 z-10">
-                            <div class="h-14 w-14 bg-white/5 rounded-2xl flex items-center justify-center text-red-600 border border-white/5">
-                                <i class="${getIconClass(r.type)} text-xl"></i>
+                            <div class="h-14 w-14 bg-white/5 rounded-2xl flex items-center justify-center text-red-500 border border-white/5 group-hover:border-red-500/30 transition">
+                                <i class="${getTitanIcon(file.category)} text-xl"></i>
                             </div>
-                            <div>
-                                <h5 class="text-sm font-bold truncate max-w-[160px]">${r.name}</h5>
-                                <p class="text-[9px] text-gray-500 font-bold tracking-widest mt-1">
-                                    ${(r.size / (1024 * 1024)).toFixed(2)} MB • ${r.date}
+                            <div class="overflow-hidden">
+                                <h5 class="text-sm font-bold truncate max-w-[160px] text-white">${file.name}</h5>
+                                <p class="text-[9px] text-gray-500 font-bold uppercase tracking-[2px] mt-1">
+                                    ${(file.rawSize / (1024 * 1024)).toFixed(2)} MB • ${file.timestamp}
                                 </p>
                             </div>
                         </div>
                         <div class="flex gap-5 z-10">
-                            <button onclick="viewObject('${r.msgId}')" class="text-gray-600 hover:text-white transition"><i class="fas fa-eye"></i></button>
-                            <button onclick="snapDelete('${r.id}')" class="text-gray-600 hover:text-red-500 transition"><i class="fas fa-trash-alt"></i></button>
+                            <button onclick="viewCloudFile('${file.telegramId}')" class="text-gray-600 hover:text-white transition active:scale-90">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="executeThanosSnap('${file.uid}')" class="text-gray-600 hover:text-red-500 transition active:scale-90">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </div>
+                        <div class="absolute inset-0 bg-gradient-to-r from-red-500/0 to-red-500/5 opacity-0 group-hover:opacity-100 transition duration-500"></div>
                     </div>
                 `).join('');
             }
-            updateStats();
+
+            calculateStorageMetrics();
         }
 
-        // -------------------------------------------------------------------------------------
-        // 4. PRO GATEWAY & WHATSAPP
-        // -------------------------------------------------------------------------------------
-        function updateStats() {
-            const used = REPO.reduce((acc, obj) => acc + obj.size, 0);
-            const gb = used / (1024**3);
-            const percent = (used / SYSTEM.STORAGE_MAX) * 100;
+        // 6. STORAGE & PRO SYSTEM
+        function calculateStorageMetrics() {
+            const totalUsedBytes = TITAN_DB.reduce((acc, f) => acc + f.rawSize, 0);
+            const usedGB = totalUsedBytes / (1024 * 1024 * 1024);
+            const usagePercent = (totalUsedBytes / REX_ENV.MAX_BYTES) * 100;
 
-            document.getElementById('stat-gb').innerText = gb.toFixed(2);
-            document.getElementById('stat-percent').innerText = percent.toFixed(2) + '% USED';
-            document.getElementById('main-bar').style.width = percent + '%';
-            document.getElementById('repo-count').innerText = REPO.length + ' OBJECTS';
+            // UI Update
+            document.getElementById('stat-used-gb').innerText = usedGB.toFixed(2);
+            document.getElementById('stat-percent-label').innerText = usagePercent.toFixed(2) + '% USED';
+            
+            const bar = document.getElementById('storage-bar-fill');
+            bar.style.width = usagePercent + '%';
 
-            // Pro Trigger
-            if(percent > 85) {
-                document.getElementById('pro-gate').classList.remove('hidden');
+            // Check for Pro Trigger
+            const proGate = document.getElementById('pro-alert-box');
+            if(usagePercent > 80) { // If storage > 80%, show Pro upgrade
+                proGate.classList.remove('hidden');
+                if(!isProTriggered) {
+                    isProTriggered = true;
+                    console.log("STORAGE LIMIT REACHED: PRO MODULE READY");
+                }
+            } else {
+                proGate.classList.add('hidden');
             }
         }
 
-        function triggerProRequest() {
-            const msg = "I Wont Update To Pro"; // ඔයා ඉල්ලපු පණිවිඩය
-            const url = `https://wa.me/${SYSTEM.ADMIN}?text=${encodeURIComponent(msg)}`;
-            window.open(url, '_blank');
+        function contactAdminForPro() {
+            const message = "I Wont Update To Pro"; //
+            const whatsappUrl = `https://wa.me/${REX_ENV.ADMIN_WA}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
         }
 
-        // -------------------------------------------------------------------------------------
-        // 5. THANOS SNAP (DUST EFFECT)
-        // -------------------------------------------------------------------------------------
-        async function snapDelete(id) {
-            const el = document.getElementById(id);
-            const canvas = await html2canvas(el, { backgroundColor: null });
+        // 7. THANOS DUST ANIMATION ENGINE
+        async function executeThanosSnap(id) {
+            const element = document.getElementById(id);
+            if(!element) return;
+
+            // 1. Capture element as image
+            const canvas = await html2canvas(element, { backgroundColor: null, scale: 1 });
             const ctx = canvas.getContext('2d');
             const { width, height } = canvas;
-            const imageData = ctx.getImageData(0, 0, width, height);
+            const imgData = ctx.getImageData(0, 0, width, height);
             
-            el.style.visibility = 'hidden';
-            const rect = el.getBoundingClientRect();
-            const container = document.getElementById('dust-canvas-layer');
+            // 2. Hide original
+            element.style.visibility = 'hidden';
+            const rect = element.getBoundingClientRect();
+            const container = document.getElementById('dust-canvas-container');
 
-            for (let i = 0; i < 24; i++) {
-                const c = document.createElement('canvas');
-                c.width = width; c.height = height;
-                c.style.position = 'fixed';
-                c.style.left = rect.left + 'px';
-                c.style.top = rect.top + 'px';
+            // 3. Create 30 layers for disintegration
+            const layerCount = 30;
+            for (let i = 0; i < layerCount; i++) {
+                const layerCanvas = document.createElement('canvas');
+                layerCanvas.width = width;
+                layerCanvas.height = height;
+                layerCanvas.style.position = 'fixed';
+                layerCanvas.style.left = rect.left + 'px';
+                layerCanvas.style.top = rect.top + 'px';
+                layerCanvas.style.zIndex = '99999';
                 
-                const lCtx = c.getContext('2d');
+                const lCtx = layerCanvas.getContext('2d');
                 const lData = lCtx.createImageData(width, height);
 
-                for (let j = 0; j < imageData.data.length; j += 4) {
-                    if (Math.random() < i / 24) {
-                        lData.data[j] = imageData.data[j];
-                        lData.data[j+1] = imageData.data[j+1];
-                        lData.data[j+2] = imageData.data[j+2];
-                        lData.data[j+3] = imageData.data[j+3];
+                // Distribute pixels across layers
+                for (let j = 0; j < imgData.data.length; j += 4) {
+                    if (Math.random() < i / layerCount) {
+                        lData.data[j] = imgData.data[j];
+                        lData.data[j+1] = imgData.data[j+1];
+                        lData.data[j+2] = imgData.data[j+2];
+                        lData.data[j+3] = imgData.data[j+3];
                     }
                 }
                 lCtx.putImageData(lData, 0, 0);
-                container.appendChild(c);
+                container.appendChild(layerCanvas);
 
-                c.animate([
+                // 4. Animate each layer
+                const delay = i * 45;
+                layerCanvas.animate([
                     { transform: 'translate(0,0) rotate(0deg)', opacity: 1, filter: 'blur(0px)' },
-                    { transform: `translate(${Math.random()*200 - 100}px, -150px) rotate(${Math.random()*40 - 20}deg)`, opacity: 0, filter: 'blur(8px)' }
-                ], { duration: 1800, easing: 'ease-in-out', delay: i*40, fill: 'forwards' }).onfinish = () => c.remove();
+                    { 
+                        transform: `translate(${150 + Math.random()*100}px, -${100 + Math.random()*100}px) rotate(${Math.random()*40 - 20}deg)`, 
+                        opacity: 0, 
+                        filter: 'blur(10px)' 
+                    }
+                ], {
+                    duration: 2000,
+                    easing: 'ease-in-out',
+                    delay: delay,
+                    fill: 'forwards'
+                });
+
+                // Cleanup
+                setTimeout(() => layerCanvas.remove(), 2500);
             }
 
+            // 5. Update Database after animation starts
             setTimeout(() => {
-                REPO = REPO.filter(r => r.id !== id);
-                syncLocal();
-                refreshUI();
-            }, 1200);
+                TITAN_DB = TITAN_DB.filter(f => f.uid !== id);
+                saveTitanDB();
+                refreshDashboardUI();
+            }, 1000);
         }
 
-        // -------------------------------------------------------------------------------------
-        // 6. UTILITIES & HELPERS
-        // -------------------------------------------------------------------------------------
-        const syncLocal = () => localStorage.setItem(SYSTEM.DB_KEY, JSON.stringify(REPO));
-        const switchView = id => {
-            ['view-auth', 'view-lock', 'view-main', 'view-settings'].forEach(v => document.getElementById(v).classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-        };
-
-        const detectCategory = t => t.includes('image') ? 'image' : t.includes('video') ? 'video' : 'doc';
-        const getIconClass = t => t==='image' ? 'fas fa-image' : t==='video' ? 'fas fa-film' : 'fas fa-file-shield';
-
-        function createGlobalLoader(name) {
-            const div = document.createElement('div');
-            div.className = "fixed inset-0 bg-black/90 backdrop-blur-xl z-[500] flex items-center justify-center p-12 text-center";
-            div.innerHTML = `<div><i class="fas fa-atom fa-spin text-5xl text-red-600 mb-6"></i><p class="orbitron text-sm">ENCRYPTING & UPLOADING</p><p class="text-[9px] text-gray-500 mt-2 uppercase">${name}</p></div>`;
-            document.body.appendChild(div);
-            return div;
+        // 8. HELPERS & UTILITIES
+        function createTitanLoader(filename) {
+            const overlay = document.createElement('div');
+            overlay.className = "fixed inset-0 bg-black/95 backdrop-blur-2xl z-[50000] flex items-center justify-center p-12 text-center";
+            overlay.innerHTML = `
+                <div class="animate-entry">
+                    <div class="relative inline-block mb-10">
+                        <div class="h-20 w-20 border-4 border-red-500/20 border-t-red-500 rounded-full animate-spin"></div>
+                        <i class="fas fa-cloud-upload-alt absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-xl"></i>
+                    </div>
+                    <h3 class="orbitron text-sm font-black mb-2">SECURE TRANSMISSION ACTIVE</h3>
+                    <p class="text-[9px] text-gray-600 uppercase tracking-widest font-bold">Encrypting: ${filename}</p>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            return overlay;
         }
 
-        window.savePin = () => {
-            const p = document.getElementById('cfg-pin').value;
-            if(p.length === 4) {
-                MASTER_PIN = p;
-                localStorage.setItem(SYSTEM.PIN_KEY, p);
-                alert("SECURITY PROTOCOL UPDATED");
+        function saveTitanDB() {
+            localStorage.setItem(REX_ENV.DB_STORAGE_NAME, JSON.stringify(TITAN_DB));
+        }
+
+        window.commitPinUpdate = () => {
+            const newPin = document.getElementById('cfg-new-pin').value;
+            if(newPin.length === 4) {
+                CURRENT_PIN = newPin;
+                localStorage.setItem(REX_ENV.PIN_STORAGE_NAME, newPin);
+                alert("PROTOCOL SUCCESS: MASTER PIN UPDATED");
+                document.getElementById('cfg-new-pin').value = "";
+            } else {
+                alert("ERROR: PIN MUST BE 4 DIGITS");
             }
         };
 
-        window.viewObject = id => window.open(`https://t.me/c/${SYSTEM.CHAT}/${id}`, '_blank');
-        
-        window.filterRepo = (type, btn) => {
-            document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
+        window.viewCloudFile = (msgId) => {
+            alert("REDIRECTING TO SECURE TELEGRAM CLOUD NODE...");
+            window.open(`https://t.me/c/${REX_ENV.CHAT_ID}/${msgId}`, '_blank');
+        };
+
+        window.applyFilter = (cat, btn) => {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
             btn.classList.add('active');
-            refreshUI(type);
+            refreshDashboardUI(cat);
         };
 
-        window.remoteInject = () => {
-            const url = prompt("INPUT REMOTE OBJECT URL:");
-            if(url) alert("INJECTION SEQUENCE INITIALIZED. MIRRORING DATA TO CLOUD STORAGE.");
+        window.openRemotePrompt = () => {
+            const url = prompt("ENTER REMOTE OBJECT URL TO INJECT:");
+            if(url) {
+                alert("REMOTE INJECTION SEQUENCE INITIALIZED. DATA WILL BE MIRRORED TO YOUR CLOUD VAULT.");
+            }
         };
 
+        window.logout = () => {
+            if(confirm("TERMINATE SESSION? THIS WILL RELOAD THE TERMINAL.")) {
+                location.reload();
+            }
+        };
+
+        // Initialize App
+        console.log("REX CLOUD v10.0 TITAN - SYSTEM STANDBY");
     </script>
-
-    <style>
-        .cat-pill { padding: 10px 20px; border-radius: 15px; font-size: 9px; font-weight: 900; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); transition: 0.3s; white-space: nowrap; }
-        .cat-pill.active { background: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 5px 15px var(--accent-glow); }
-        .scale-in-center { animation: scale-in-center 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both; }
-        @keyframes scale-in-center { 0% { transform: scale(0); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
-    </style>
 </body>
 </html>
