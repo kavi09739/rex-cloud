@@ -1,1 +1,489 @@
-h
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>REX CLOUD | Unlimited Edition</title>
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        :root {
+            --accent-primary: #ff416c;
+            --bg-deep: #020205;
+            --glass-white: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            background-color: var(--bg-deep);
+            background-image: radial-gradient(circle at 10% 20%, rgba(255, 65, 108, 0.05) 0%, transparent 40%);
+            color: #ffffff;
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+        }
+
+        .orbitron { font-family: 'Orbitron', sans-serif; letter-spacing: 2px; }
+
+        .glass-card {
+            background: var(--glass-white);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+        }
+
+        #media-viewer {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 10000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        .rex-input {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px; padding: 15px; color: white; width: 100%;
+            text-align: center;
+        }
+
+        .unlimited-badge {
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+        }
+
+        .chip { padding: 10px 20px; border-radius: 15px; font-size: 9px; font-weight: 900; background: var(--glass-white); border: 1px solid var(--glass-border); text-transform: uppercase; }
+        .chip-active { background: var(--accent-primary); border-color: var(--accent-primary); }
+
+        /* Vibrate Animation for Wrong PIN */
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="dust-canvas-container" style="position:fixed; inset:0; pointer-events:none; z-index:9999;"></div>
+
+    <div id="toast-error" class="fixed top-10 left-1/2 transform -translate-x-1/2 bg-red-600/90 text-white px-8 py-4 rounded-2xl shadow-[0_0_20px_rgba(255,0,0,0.5)] backdrop-blur-md hidden z-[9999] orbitron text-xs font-bold tracking-widest border border-red-400 transition-all">
+        WRONG CODE
+    </div>
+
+    <div id="media-viewer">
+        <button onclick="closeViewer()" class="absolute top-8 right-8 text-4xl text-white/50">&times;</button>
+        <div id="viewer-content" class="max-w-[95%] max-h-[85%] flex items-center justify-center"></div>
+        <p id="viewer-name" class="mt-6 orbitron text-[10px] text-gray-500"></p>
+    </div>
+
+    <section id="screen-auth" class="min-h-screen flex items-center justify-center p-6">
+        <div class="glass-card p-10 w-full max-w-md text-center">
+            <h1 class="orbitron text-4xl font-black mb-5 italic text-red-500">REX CLOUD</h1>
+            <p class="text-[10px] text-gray-500 mb-8 tracking-widest uppercase">Set Your Master Access</p>
+            <div class="space-y-4">
+                <input type="email" id="input-email" placeholder="ADMIN EMAIL" class="rex-input">
+                <input type="password" id="input-set-pin" placeholder="SET 4-DIGIT PIN" class="rex-input" maxlength="4">
+                <button onclick="handleInitialAuth()" class="w-full bg-red-600 py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest mt-4">Create Vault</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="screen-lock" class="min-h-screen flex flex-col items-center justify-center p-6 hidden">
+        <div id="lock-card" class="glass-card p-10 w-full max-w-sm text-center">
+            <div class="h-20 w-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-red-500/20" onclick="triggerBiometric()">
+                <i class="fas fa-fingerprint text-4xl text-red-500"></i>
+            </div>
+            <h2 class="orbitron text-[10px] mb-8 tracking-[5px] text-gray-500 uppercase">System Encrypted</h2>
+            <div id="pin-dots" class="flex justify-center gap-4 mb-10">
+                <div class="h-3 w-3 rounded-full border border-red-500/50 transition-all"></div>
+                <div class="h-3 w-3 rounded-full border border-red-500/50 transition-all"></div>
+                <div class="h-3 w-3 rounded-full border border-red-500/50 transition-all"></div>
+                <div class="h-3 w-3 rounded-full border border-red-500/50 transition-all"></div>
+            </div>
+            <div class="grid grid-cols-3 gap-4" id="pin-pad"></div>
+        </div>
+    </section>
+
+    <section id="screen-dashboard" class="min-h-screen p-6 hidden max-w-2xl mx-auto">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="orbitron text-xl font-bold">REX CLOUD</h1>
+                <p id="user-tag" class="text-[9px] text-gray-500 font-bold uppercase tracking-widest"></p>
+            </div>
+            <button onclick="toggleSettings()" class="h-12 w-12 glass-card flex items-center justify-center text-gray-400 hover:text-white transition">
+                <i class="fas fa-cog"></i>
+            </button>
+        </header>
+
+        <div class="glass-card p-8 flex justify-between items-center mb-8 border-emerald-500/10">
+            <div>
+                <p class="text-[8px] font-black text-gray-500 uppercase tracking-[3px] mb-1">Vault Status</p>
+                <h2 class="orbitron text-2xl font-black unlimited-badge">UNLIMITED</h2>
+            </div>
+            <div class="text-right">
+                <p id="stat-count" class="text-2xl font-black orbitron">0</p>
+                <p class="text-[8px] text-gray-500 font-bold uppercase">Objects Secured</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <label class="glass-card p-6 flex flex-col items-center justify-center cursor-pointer border-dashed border-white/5 hover:bg-white/5 transition">
+                <i class="fas fa-cloud-upload-alt text-red-500 text-xl mb-3"></i>
+                <span class="text-[10px] font-black uppercase tracking-widest text-center">Push Data</span>
+                <input type="file" multiple id="file-input" class="hidden" onchange="handleFiles(this)">
+            </label>
+            <div onclick="remoteUpload()" class="glass-card p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition">
+                <i class="fas fa-link text-blue-500 text-xl mb-3"></i>
+                <span class="text-[10px] font-black uppercase tracking-widest text-center">Mirror Link</span>
+            </div>
+            <label class="col-span-2 glass-card p-6 flex flex-col items-center justify-center cursor-pointer border-emerald-500/20 hover:bg-emerald-500/5 transition">
+                <i class="fas fa-camera text-emerald-500 text-2xl mb-3"></i>
+                <span class="text-[10px] font-black uppercase tracking-widest text-emerald-100">Open Camera</span>
+                <input type="file" accept="image/*,video/*" capture="environment" id="camera-input" class="hidden" onchange="handleFiles(this)">
+            </label>
+        </div>
+
+        <div id="upload-queue" class="mb-8"></div>
+
+        <div class="flex gap-2 overflow-x-auto pb-6 no-scrollbar mb-4">
+            <button onclick="renderFiles('all', this)" class="chip-active chip">All</button>
+            <button onclick="renderFiles('image', this)" class="chip">Photos</button>
+            <button onclick="renderFiles('video', this)" class="chip">Videos</button>
+            <button onclick="renderFiles('doc', this)" class="chip">Docs</button>
+        </div>
+
+        <div id="file-container" class="space-y-4 pb-32"></div>
+    </section>
+
+    <div id="panel-settings" class="fixed inset-0 bg-black/98 z-[5000] p-10 hidden">
+        <div class="max-w-md mx-auto">
+            <div class="flex justify-between items-center mb-16">
+                <h2 class="orbitron text-xl font-bold">SETTINGS</h2>
+                <button onclick="toggleSettings()" class="text-4xl text-gray-600">&times;</button>
+            </div>
+            <div class="space-y-8">
+                <div class="glass-card p-8">
+                    <p class="text-[10px] text-gray-500 mb-6 uppercase">Change PIN</p>
+                    <input type="password" id="new-pin" placeholder="NEW PIN" class="rex-input mb-4 orbitron tracking-[10px]" maxlength="4">
+                    <button onclick="updatePin()" class="w-full bg-white text-black py-4 rounded-xl font-black text-[10px] uppercase">Update</button>
+                </div>
+                <button onclick="logout()" class="w-full py-5 text-red-500 font-black text-[10px] glass-card uppercase border-red-500/20">Wipe Session</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const REX_ENV = {
+            BOT_TOKEN: '8664449438:AAFEvs3o65mnfIuaZSC06kfcZ_09VoAFg90',
+            CHAT_ID: '8097272918'
+        };
+
+        let DB = JSON.parse(localStorage.getItem('REX_VAULT')) || [];
+        let SETTINGS = JSON.parse(localStorage.getItem('REX_CONFIG')) || { pin: null, isAuth: false, email: '' };
+        let currentPinInput = "";
+
+        window.onload = () => {
+            if(SETTINGS.pin) {
+                document.getElementById('screen-auth').classList.add('hidden');
+                document.getElementById('screen-lock').classList.remove('hidden');
+                document.getElementById('user-tag').innerText = SETTINGS.email;
+                renderPinPad();
+            }
+        };
+
+        function handleInitialAuth() {
+            const email = document.getElementById('input-email').value;
+            const pin = document.getElementById('input-set-pin').value;
+            if(email.includes('@') && pin.length === 4) {
+                SETTINGS.isAuth = true;
+                SETTINGS.email = email.toUpperCase();
+                SETTINGS.pin = pin;
+                saveSettings();
+                location.reload();
+            } else {
+                alert("Please enter a valid Email and 4-digit PIN");
+            }
+        }
+
+        function renderPinPad() {
+            const pad = document.getElementById('pin-pad');
+            pad.innerHTML = "";
+            for(let i=1; i<=9; i++) {
+                const b = document.createElement('button');
+                b.className = "glass-card py-6 font-bold orbitron text-xl active:bg-white/10";
+                b.innerText = i;
+                b.onclick = () => handlePinInput(i);
+                pad.appendChild(b);
+            }
+            const zero = document.createElement('button');
+            zero.className = "col-start-2 glass-card py-6 font-bold orbitron text-xl";
+            zero.innerText = "0";
+            zero.onclick = () => handlePinInput(0);
+            pad.appendChild(zero);
+        }
+
+        function showWrongPinError() {
+            // Vibrate if supported
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200]);
+            }
+            // Shake effect
+            const card = document.getElementById('lock-card');
+            card.classList.add('shake');
+            setTimeout(() => card.classList.remove('shake'), 500);
+            
+            // Toast Notification
+            const toast = document.getElementById('toast-error');
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 2000);
+        }
+
+        function handlePinInput(n) {
+            if(currentPinInput.length < 4) {
+                currentPinInput += n;
+                updatePinVisuals();
+                if(currentPinInput.length === 4) {
+                    setTimeout(() => {
+                        if(currentPinInput === SETTINGS.pin) {
+                            document.getElementById('screen-lock').classList.add('hidden');
+                            document.getElementById('screen-dashboard').classList.remove('hidden');
+                            refreshDashboard();
+                        } else {
+                            showWrongPinError();
+                            currentPinInput = "";
+                            updatePinVisuals();
+                        }
+                    }, 200);
+                }
+            }
+        }
+
+        function updatePinVisuals() {
+            const dots = document.querySelectorAll('#pin-dots div');
+            dots.forEach((d, i) => {
+                d.style.background = i < currentPinInput.length ? '#ff416c' : 'transparent';
+                d.style.boxShadow = i < currentPinInput.length ? '0 0 15px #ff416c' : 'none';
+                d.style.borderColor = i < currentPinInput.length ? '#ff416c' : 'rgba(239, 68, 68, 0.5)';
+            });
+        }
+
+        async function triggerBiometric() {
+            if (window.PublicKeyCredential) {
+                alert("Biometric Scanner Initialized. (Device Authenticator Active)");
+            } else {
+                alert("Biometric not supported on this browser.");
+            }
+        }
+
+        async function handleFiles(input) {
+            const files = Array.from(input.files);
+            const queue = document.getElementById('upload-queue');
+            for(const file of files) {
+                const qId = 'q-' + Date.now();
+                const qItem = document.createElement('div');
+                qItem.className = "p-4 glass-card mb-2 flex justify-between items-center animate-pulse border border-red-500/20";
+                qItem.id = qId;
+                qItem.innerHTML = `<span class="text-[10px] font-bold text-white/80">${file.name}</span><span class="text-[8px] text-red-400">UPLOADING...</span>`;
+                queue.appendChild(qItem);
+
+                const formData = new FormData();
+                formData.append('chat_id', REX_ENV.CHAT_ID);
+                formData.append('document', file);
+                
+                try {
+                    const res = await fetch(`https://api.telegram.org/bot${REX_ENV.BOT_TOKEN}/sendDocument`, { method: 'POST', body: formData });
+                    const data = await res.json();
+                    if(data.ok) {
+                        const fileObj = {
+                            id: Date.now() + Math.random(),
+                            name: file.name,
+                            size: file.size,
+                            type: file.type,
+                            fileId: data.result.document.file_id,
+                            cat: file.type.includes('image') ? 'image' : (file.type.includes('video') ? 'video' : 'doc'),
+                            date: new Date().toLocaleDateString()
+                        };
+                        DB.unshift(fileObj);
+                        saveDB();
+                        qItem.remove();
+                        refreshDashboard();
+                    }
+                } catch(e) { alert("Upload Failed"); qItem.remove(); }
+            }
+            input.value = ""; // Reset input
+        }
+
+        async function remoteUpload() {
+            const url = prompt("ENTER DIRECT LINK (Must be a direct file link, e.g., ending in .jpg, .mp4, .zip):");
+            if(url) {
+                const queue = document.getElementById('upload-queue');
+                const qId = 'q-remote-' + Date.now();
+                const qItem = document.createElement('div');
+                qItem.className = "p-4 glass-card mb-2 flex justify-between items-center animate-pulse border border-blue-500/30";
+                qItem.id = qId;
+                qItem.innerHTML = `<span class="text-[10px] font-bold text-blue-400">FETCHING REMOTE DATA...</span>`;
+                queue.appendChild(qItem);
+
+                try {
+                    const formData = new FormData();
+                    formData.append('chat_id', REX_ENV.CHAT_ID);
+                    formData.append('document', url); 
+
+                    const res = await fetch(`https://api.telegram.org/bot${REX_ENV.BOT_TOKEN}/sendDocument`, { method: 'POST', body: formData });
+                    const data = await res.json();
+                    
+                    if(data.ok) {
+                        const fileObj = {
+                            id: Date.now() + Math.random(),
+                            name: data.result.document.file_name || "Remote_File",
+                            size: data.result.document.file_size || 0,
+                            type: data.result.document.mime_type || 'unknown',
+                            fileId: data.result.document.file_id,
+                            cat: (data.result.document.mime_type || '').includes('image') ? 'image' : ((data.result.document.mime_type || '').includes('video') ? 'video' : 'doc'),
+                            date: new Date().toLocaleDateString()
+                        };
+                        DB.unshift(fileObj);
+                        saveDB();
+                        qItem.remove();
+                        refreshDashboard();
+                    } else {
+                        throw new Error("Invalid Link format");
+                    }
+                } catch(e) { 
+                    alert("Remote Upload Failed! Ensure the link is a DIRECT file link."); 
+                    qItem.remove(); 
+                }
+            }
+        }
+
+        async function openViewer(fileId, type, name) {
+            const viewer = document.getElementById('media-viewer');
+            const content = document.getElementById('viewer-content');
+            viewer.style.display = 'flex';
+            content.innerHTML = `<i class="fas fa-circle-notch fa-spin text-3xl"></i>`;
+            
+            const cacheKey = `cache_${fileId}`;
+            const cachedUrl = localStorage.getItem(cacheKey);
+
+            let url;
+            if (cachedUrl) {
+                url = cachedUrl;
+            } else {
+                const pathRes = await fetch(`https://api.telegram.org/bot${REX_ENV.BOT_TOKEN}/getFile?file_id=${fileId}`);
+                const pathData = await pathRes.json();
+                url = `https://api.telegram.org/file/bot${REX_ENV.BOT_TOKEN}/${pathData.result.file_path}`;
+                if (type.includes('image')) localStorage.setItem(cacheKey, url); 
+            }
+
+            if(type.includes('image')) {
+                content.innerHTML = `<img src="${url}" class="max-w-full rounded-xl shadow-2xl">`;
+            } else if(type.includes('video')) {
+                content.innerHTML = `<video src="${url}" controls autoplay class="max-w-full rounded-xl shadow-2xl"></video>`;
+            } else {
+                content.innerHTML = `<a href="${url}" target="_blank" class="bg-white text-black px-10 py-4 rounded-full font-bold uppercase text-[10px]">Open Document</a>`;
+            }
+            document.getElementById('viewer-name').innerText = name.toUpperCase();
+        }
+
+        function closeViewer() { document.getElementById('media-viewer').style.display = 'none'; }
+
+        function refreshDashboard() {
+            renderFiles('all');
+            document.getElementById('stat-count').innerText = DB.length;
+        }
+
+        function renderFiles(filter, btn) {
+            if(btn) {
+                document.querySelectorAll('.chip').forEach(c => c.classList.remove('chip-active'));
+                btn.classList.add('chip-active');
+            }
+            const cont = document.getElementById('file-container');
+            cont.innerHTML = "";
+            const filtered = filter === 'all' ? DB : DB.filter(f => f.cat === filter);
+            
+            filtered.forEach(f => {
+                const div = document.createElement('div');
+                div.id = 'node-' + f.id;
+                div.className = "glass-card p-5 flex justify-between items-center group relative";
+                div.innerHTML = `
+                    <div class="flex items-center gap-4 flex-1 cursor-pointer" onclick="openViewer('${f.fileId}', '${f.type}', '${f.name}')">
+                        <i class="fas ${f.cat === 'image' ? 'fa-image text-red-500' : (f.cat === 'video' ? 'fa-play text-blue-500' : 'fa-file')}"></i>
+                        <div class="overflow-hidden">
+                            <p class="text-[11px] font-bold truncate max-w-[150px] text-white/90">${f.name}</p>
+                            <p class="text-[8px] text-gray-600 font-bold uppercase">${(f.size/1024/1024).toFixed(2)} MB</p>
+                        </div>
+                    </div>
+                    <button onclick="executeDelete('node-${f.id}', ${f.id})" class="text-gray-700 hover:text-red-500 p-2 transition"><i class="fas fa-trash-alt"></i></button>
+                `;
+                cont.appendChild(div);
+            });
+        }
+
+        async function executeDelete(divId, dbId) {
+            const el = document.getElementById(divId);
+            const canvas = await html2canvas(el, { backgroundColor: null });
+            const ctx = canvas.getContext('2d');
+            const { width, height } = canvas;
+            const imgData = ctx.getImageData(0, 0, width, height);
+            
+            el.style.visibility = 'hidden';
+            const rect = el.getBoundingClientRect();
+            const container = document.getElementById('dust-canvas-container');
+
+            for (let i = 0; i < 20; i++) {
+                const c = document.createElement('canvas');
+                c.width = width; c.height = height;
+                c.style.position = 'fixed';
+                c.style.left = rect.left + 'px';
+                c.style.top = rect.top + 'px';
+                
+                const lCtx = c.getContext('2d');
+                const lData = lCtx.createImageData(width, height);
+
+                for (let j = 0; j < imgData.data.length; j += 4) {
+                    if (Math.random() < i / 20) {
+                        lData.data[j] = imgData.data[j];
+                        lData.data[j+1] = imgData.data[j+1];
+                        lData.data[j+2] = imgData.data[j+2];
+                        lData.data[j+3] = imgData.data[j+3];
+                    }
+                }
+                lCtx.putImageData(lData, 0, 0);
+                container.appendChild(c);
+
+                c.animate([
+                    { transform: 'translate(0,0) rotate(0deg)', opacity: 1, filter: 'blur(0px)' },
+                    { transform: `translate(${Math.random()*150 - 75}px, -${100 + Math.random()*100}px) rotate(${Math.random()*40 - 20}deg)`, opacity: 0, filter: 'blur(5px)' }
+                ], { duration: 1500, easing: 'ease-out', delay: i*20, fill: 'forwards' }).onfinish = () => c.remove();
+            }
+
+            setTimeout(() => {
+                DB = DB.filter(f => f.id !== dbId);
+                saveDB();
+                refreshDashboard();
+            }, 1000);
+        }
+
+        function toggleSettings() { document.getElementById('panel-settings').classList.toggle('hidden'); }
+        function logout() { localStorage.clear(); location.reload(); }
+        function saveDB() { localStorage.setItem('REX_VAULT', JSON.stringify(DB)); }
+        function saveSettings() { localStorage.setItem('REX_CONFIG', JSON.stringify(SETTINGS)); }
+        function updatePin() {
+            const val = document.getElementById('new-pin').value;
+            if(val.length === 4) { SETTINGS.pin = val; saveSettings(); alert("PIN UPDATED"); toggleSettings(); }
+        }
+    </script>
+</body>
+</html>
