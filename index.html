@@ -11,7 +11,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
         :root {
@@ -28,6 +27,7 @@
             color: #ffffff;
             font-family: 'Poppins', sans-serif;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .orbitron { font-family: 'Orbitron', sans-serif; letter-spacing: 2px; }
@@ -49,8 +49,9 @@
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 15px; padding: 15px; color: white; width: 100%;
-            text-align: center;
+            text-align: center; outline: none; transition: 0.3s;
         }
+        .rex-input:focus { border-color: var(--accent-primary); background: rgba(255, 65, 108, 0.05); }
 
         .unlimited-badge {
             background: linear-gradient(45deg, #00f2fe, #4facfe);
@@ -62,22 +63,44 @@
         .chip { padding: 10px 20px; border-radius: 15px; font-size: 9px; font-weight: 900; background: var(--glass-white); border: 1px solid var(--glass-border); text-transform: uppercase; }
         .chip-active { background: var(--accent-primary); border-color: var(--accent-primary); }
 
-        /* Vibrate Animation for Wrong PIN */
-        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        /* Smooth Dust Animation */
+        .dust-out {
+            animation: dustOut 0.8s ease-in forwards;
+            pointer-events: none;
+        }
+        @keyframes dustOut {
+            0% { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+            100% { transform: translateX(100px) scale(0.8); opacity: 0; filter: blur(15px); }
+        }
+
+        .shake { animation: shake 0.4s both; }
         @keyframes shake {
             10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            30%, 70% { transform: translate3d(-4px, 0, 0); }
             40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        #remote-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            z-index: 6000; display: none; align-items: center; justify-content: center; p: 6;
         }
     </style>
 </head>
 <body>
 
-    <div id="dust-canvas-container" style="position:fixed; inset:0; pointer-events:none; z-index:9999;"></div>
-
     <div id="toast-error" class="fixed top-10 left-1/2 transform -translate-x-1/2 bg-red-600/90 text-white px-8 py-4 rounded-2xl shadow-[0_0_20px_rgba(255,0,0,0.5)] backdrop-blur-md hidden z-[9999] orbitron text-xs font-bold tracking-widest border border-red-400 transition-all">
         WRONG CODE
+    </div>
+
+    <div id="remote-modal">
+        <div class="glass-card p-8 w-full max-w-sm text-center">
+            <h3 class="orbitron text-xs mb-6 text-blue-400">MIRROR INJECTION</h3>
+            <input type="text" id="remote-url" placeholder="PASTE DIRECT LINK HERE" class="rex-input mb-4">
+            <div class="flex gap-3">
+                <button onclick="closeRemote()" class="flex-1 py-3 text-[10px] orbitron bg-white/5 rounded-xl">CANCEL</button>
+                <button onclick="processRemote()" class="flex-1 py-3 text-[10px] orbitron bg-blue-600 rounded-xl">FETCH</button>
+            </div>
+        </div>
     </div>
 
     <div id="media-viewer">
@@ -86,7 +109,7 @@
         <p id="viewer-name" class="mt-6 orbitron text-[10px] text-gray-500"></p>
     </div>
 
-    <section id="screen-auth" class="min-h-screen flex items-center justify-center p-6">
+    <section id="screen-auth" class="min-h-screen flex items-center justify-center p-6 hidden">
         <div class="glass-card p-10 w-full max-w-md text-center">
             <h1 class="orbitron text-4xl font-black mb-5 italic text-red-500">REX CLOUD</h1>
             <p class="text-[10px] text-gray-500 mb-8 tracking-widest uppercase">Set Your Master Access</p>
@@ -142,7 +165,7 @@
                 <span class="text-[10px] font-black uppercase tracking-widest text-center">Push Data</span>
                 <input type="file" multiple id="file-input" class="hidden" onchange="handleFiles(this)">
             </label>
-            <div onclick="remoteUpload()" class="glass-card p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition">
+            <div onclick="openRemote()" class="glass-card p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition">
                 <i class="fas fa-link text-blue-500 text-xl mb-3"></i>
                 <span class="text-[10px] font-black uppercase tracking-widest text-center">Mirror Link</span>
             </div>
@@ -191,15 +214,25 @@
         let DB = JSON.parse(localStorage.getItem('REX_VAULT')) || [];
         let SETTINGS = JSON.parse(localStorage.getItem('REX_CONFIG')) || { pin: null, isAuth: false, email: '' };
         let currentPinInput = "";
+        let isSessionLocked = true;
 
         window.onload = () => {
-            if(SETTINGS.pin) {
-                document.getElementById('screen-auth').classList.add('hidden');
+            if(!SETTINGS.pin) {
+                document.getElementById('screen-auth').classList.remove('hidden');
+            } else {
                 document.getElementById('screen-lock').classList.remove('hidden');
                 document.getElementById('user-tag').innerText = SETTINGS.email;
                 renderPinPad();
             }
         };
+
+        // Re-lock when app is hidden/minimized
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden && SETTINGS.pin) {
+                isSessionLocked = true;
+                location.reload(); 
+            }
+        });
 
         function handleInitialAuth() {
             const email = document.getElementById('input-email').value;
@@ -211,7 +244,7 @@
                 saveSettings();
                 location.reload();
             } else {
-                alert("Please enter a valid Email and 4-digit PIN");
+                alert("Enter valid Email & 4-digit PIN");
             }
         }
 
@@ -232,24 +265,6 @@
             pad.appendChild(zero);
         }
 
-        function showWrongPinError() {
-            // Vibrate if supported
-            if (navigator.vibrate) {
-                navigator.vibrate([200, 100, 200]);
-            }
-            // Shake effect
-            const card = document.getElementById('lock-card');
-            card.classList.add('shake');
-            setTimeout(() => card.classList.remove('shake'), 500);
-            
-            // Toast Notification
-            const toast = document.getElementById('toast-error');
-            toast.classList.remove('hidden');
-            setTimeout(() => {
-                toast.classList.add('hidden');
-            }, 2000);
-        }
-
         function handlePinInput(n) {
             if(currentPinInput.length < 4) {
                 currentPinInput += n;
@@ -257,11 +272,12 @@
                 if(currentPinInput.length === 4) {
                     setTimeout(() => {
                         if(currentPinInput === SETTINGS.pin) {
+                            isSessionLocked = false;
                             document.getElementById('screen-lock').classList.add('hidden');
                             document.getElementById('screen-dashboard').classList.remove('hidden');
                             refreshDashboard();
                         } else {
-                            showWrongPinError();
+                            showError();
                             currentPinInput = "";
                             updatePinVisuals();
                         }
@@ -270,138 +286,94 @@
             }
         }
 
+        function showError() {
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            const card = document.getElementById('lock-card');
+            card.classList.add('shake');
+            setTimeout(() => card.classList.remove('shake'), 400);
+            const toast = document.getElementById('toast-error');
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2000);
+        }
+
         function updatePinVisuals() {
             const dots = document.querySelectorAll('#pin-dots div');
             dots.forEach((d, i) => {
                 d.style.background = i < currentPinInput.length ? '#ff416c' : 'transparent';
                 d.style.boxShadow = i < currentPinInput.length ? '0 0 15px #ff416c' : 'none';
-                d.style.borderColor = i < currentPinInput.length ? '#ff416c' : 'rgba(239, 68, 68, 0.5)';
             });
         }
 
         async function triggerBiometric() {
             if (window.PublicKeyCredential) {
-                alert("Biometric Scanner Initialized. (Device Authenticator Active)");
-            } else {
-                alert("Biometric not supported on this browser.");
-            }
+                try {
+                    // This triggers the device's native lock (FaceID/Fingerprint)
+                    const auth = await navigator.credentials.get({ publicKey: { challenge: new Uint8Array([1,2,3,4]), allowCredentials: [], userVerification: "required" } });
+                    if(auth) handlePinInput(SETTINGS.pin); // Auto-fill if success
+                } catch(e) { alert("Biometric Canceled or Not Configured."); }
+            } else { alert("Not Supported."); }
+        }
+
+        // --- Dashboard Logic ---
+
+        function openRemote() { document.getElementById('remote-modal').style.display = 'flex'; }
+        function closeRemote() { document.getElementById('remote-modal').style.display = 'none'; }
+
+        async function processRemote() {
+            const url = document.getElementById('remote-url').value;
+            if(!url) return;
+            closeRemote();
+            const qId = 'q-' + Date.now();
+            const queue = document.getElementById('upload-queue');
+            const qItem = document.createElement('div');
+            qItem.className = "p-4 glass-card mb-2 flex justify-between items-center animate-pulse border border-blue-500/20";
+            qItem.id = qId;
+            qItem.innerHTML = `<span class="text-[10px] text-blue-400">MIRRORING REMOTE OBJECT...</span>`;
+            queue.appendChild(qItem);
+
+            try {
+                const res = await fetch(`https://api.telegram.org/bot${REX_ENV.BOT_TOKEN}/sendDocument`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ chat_id: REX_ENV.CHAT_ID, document: url })
+                });
+                const data = await res.json();
+                if(data.ok) {
+                    const fileObj = {
+                        id: Date.now(),
+                        name: data.result.document.file_name || "Remote_File",
+                        size: data.result.document.file_size || 0,
+                        type: data.result.document.mime_type || '',
+                        fileId: data.result.document.file_id,
+                        cat: (data.result.document.mime_type || '').includes('image') ? 'image' : 'doc',
+                        date: new Date().toLocaleDateString()
+                    };
+                    DB.unshift(fileObj); saveDB(); refreshDashboard();
+                }
+                qItem.remove();
+            } catch(e) { alert("Fetch Failed"); qItem.remove(); }
         }
 
         async function handleFiles(input) {
             const files = Array.from(input.files);
-            const queue = document.getElementById('upload-queue');
             for(const file of files) {
-                const qId = 'q-' + Date.now();
-                const qItem = document.createElement('div');
-                qItem.className = "p-4 glass-card mb-2 flex justify-between items-center animate-pulse border border-red-500/20";
-                qItem.id = qId;
-                qItem.innerHTML = `<span class="text-[10px] font-bold text-white/80">${file.name}</span><span class="text-[8px] text-red-400">UPLOADING...</span>`;
-                queue.appendChild(qItem);
-
                 const formData = new FormData();
                 formData.append('chat_id', REX_ENV.CHAT_ID);
                 formData.append('document', file);
-                
                 try {
                     const res = await fetch(`https://api.telegram.org/bot${REX_ENV.BOT_TOKEN}/sendDocument`, { method: 'POST', body: formData });
                     const data = await res.json();
                     if(data.ok) {
-                        const fileObj = {
+                        DB.unshift({
                             id: Date.now() + Math.random(),
-                            name: file.name,
-                            size: file.size,
-                            type: file.type,
+                            name: file.name, size: file.size, type: file.type,
                             fileId: data.result.document.file_id,
-                            cat: file.type.includes('image') ? 'image' : (file.type.includes('video') ? 'video' : 'doc'),
-                            date: new Date().toLocaleDateString()
-                        };
-                        DB.unshift(fileObj);
-                        saveDB();
-                        qItem.remove();
-                        refreshDashboard();
+                            cat: file.type.includes('image') ? 'image' : (file.type.includes('video') ? 'video' : 'doc')
+                        });
+                        saveDB(); refreshDashboard();
                     }
-                } catch(e) { alert("Upload Failed"); qItem.remove(); }
+                } catch(e) { alert("Upload Failed"); }
             }
-            input.value = ""; // Reset input
-        }
-
-        async function remoteUpload() {
-            const url = prompt("ENTER DIRECT LINK (Must be a direct file link, e.g., ending in .jpg, .mp4, .zip):");
-            if(url) {
-                const queue = document.getElementById('upload-queue');
-                const qId = 'q-remote-' + Date.now();
-                const qItem = document.createElement('div');
-                qItem.className = "p-4 glass-card mb-2 flex justify-between items-center animate-pulse border border-blue-500/30";
-                qItem.id = qId;
-                qItem.innerHTML = `<span class="text-[10px] font-bold text-blue-400">FETCHING REMOTE DATA...</span>`;
-                queue.appendChild(qItem);
-
-                try {
-                    const formData = new FormData();
-                    formData.append('chat_id', REX_ENV.CHAT_ID);
-                    formData.append('document', url); 
-
-                    const res = await fetch(`https://api.telegram.org/bot${REX_ENV.BOT_TOKEN}/sendDocument`, { method: 'POST', body: formData });
-                    const data = await res.json();
-                    
-                    if(data.ok) {
-                        const fileObj = {
-                            id: Date.now() + Math.random(),
-                            name: data.result.document.file_name || "Remote_File",
-                            size: data.result.document.file_size || 0,
-                            type: data.result.document.mime_type || 'unknown',
-                            fileId: data.result.document.file_id,
-                            cat: (data.result.document.mime_type || '').includes('image') ? 'image' : ((data.result.document.mime_type || '').includes('video') ? 'video' : 'doc'),
-                            date: new Date().toLocaleDateString()
-                        };
-                        DB.unshift(fileObj);
-                        saveDB();
-                        qItem.remove();
-                        refreshDashboard();
-                    } else {
-                        throw new Error("Invalid Link format");
-                    }
-                } catch(e) { 
-                    alert("Remote Upload Failed! Ensure the link is a DIRECT file link."); 
-                    qItem.remove(); 
-                }
-            }
-        }
-
-        async function openViewer(fileId, type, name) {
-            const viewer = document.getElementById('media-viewer');
-            const content = document.getElementById('viewer-content');
-            viewer.style.display = 'flex';
-            content.innerHTML = `<i class="fas fa-circle-notch fa-spin text-3xl"></i>`;
-            
-            const cacheKey = `cache_${fileId}`;
-            const cachedUrl = localStorage.getItem(cacheKey);
-
-            let url;
-            if (cachedUrl) {
-                url = cachedUrl;
-            } else {
-                const pathRes = await fetch(`https://api.telegram.org/bot${REX_ENV.BOT_TOKEN}/getFile?file_id=${fileId}`);
-                const pathData = await pathRes.json();
-                url = `https://api.telegram.org/file/bot${REX_ENV.BOT_TOKEN}/${pathData.result.file_path}`;
-                if (type.includes('image')) localStorage.setItem(cacheKey, url); 
-            }
-
-            if(type.includes('image')) {
-                content.innerHTML = `<img src="${url}" class="max-w-full rounded-xl shadow-2xl">`;
-            } else if(type.includes('video')) {
-                content.innerHTML = `<video src="${url}" controls autoplay class="max-w-full rounded-xl shadow-2xl"></video>`;
-            } else {
-                content.innerHTML = `<a href="${url}" target="_blank" class="bg-white text-black px-10 py-4 rounded-full font-bold uppercase text-[10px]">Open Document</a>`;
-            }
-            document.getElementById('viewer-name').innerText = name.toUpperCase();
-        }
-
-        function closeViewer() { document.getElementById('media-viewer').style.display = 'none'; }
-
-        function refreshDashboard() {
-            renderFiles('all');
-            document.getElementById('stat-count').innerText = DB.length;
         }
 
         function renderFiles(filter, btn) {
@@ -412,74 +384,59 @@
             const cont = document.getElementById('file-container');
             cont.innerHTML = "";
             const filtered = filter === 'all' ? DB : DB.filter(f => f.cat === filter);
-            
             filtered.forEach(f => {
                 const div = document.createElement('div');
                 div.id = 'node-' + f.id;
-                div.className = "glass-card p-5 flex justify-between items-center group relative";
+                div.className = "glass-card p-5 flex justify-between items-center transition-all duration-500";
                 div.innerHTML = `
                     <div class="flex items-center gap-4 flex-1 cursor-pointer" onclick="openViewer('${f.fileId}', '${f.type}', '${f.name}')">
                         <i class="fas ${f.cat === 'image' ? 'fa-image text-red-500' : (f.cat === 'video' ? 'fa-play text-blue-500' : 'fa-file')}"></i>
                         <div class="overflow-hidden">
-                            <p class="text-[11px] font-bold truncate max-w-[150px] text-white/90">${f.name}</p>
-                            <p class="text-[8px] text-gray-600 font-bold uppercase">${(f.size/1024/1024).toFixed(2)} MB</p>
+                            <p class="text-[11px] font-bold truncate max-w-[150px]">${f.name}</p>
+                            <p class="text-[8px] text-gray-600 uppercase font-bold">${(f.size/1024/1024).toFixed(2)} MB</p>
                         </div>
                     </div>
-                    <button onclick="executeDelete('node-${f.id}', ${f.id})" class="text-gray-700 hover:text-red-500 p-2 transition"><i class="fas fa-trash-alt"></i></button>
+                    <button onclick="executeDelete('${f.id}')" class="text-gray-700 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button>
                 `;
                 cont.appendChild(div);
             });
         }
 
-        async function executeDelete(divId, dbId) {
-            const el = document.getElementById(divId);
-            const canvas = await html2canvas(el, { backgroundColor: null });
-            const ctx = canvas.getContext('2d');
-            const { width, height } = canvas;
-            const imgData = ctx.getImageData(0, 0, width, height);
-            
-            el.style.visibility = 'hidden';
-            const rect = el.getBoundingClientRect();
-            const container = document.getElementById('dust-canvas-container');
-
-            for (let i = 0; i < 20; i++) {
-                const c = document.createElement('canvas');
-                c.width = width; c.height = height;
-                c.style.position = 'fixed';
-                c.style.left = rect.left + 'px';
-                c.style.top = rect.top + 'px';
-                
-                const lCtx = c.getContext('2d');
-                const lData = lCtx.createImageData(width, height);
-
-                for (let j = 0; j < imgData.data.length; j += 4) {
-                    if (Math.random() < i / 20) {
-                        lData.data[j] = imgData.data[j];
-                        lData.data[j+1] = imgData.data[j+1];
-                        lData.data[j+2] = imgData.data[j+2];
-                        lData.data[j+3] = imgData.data[j+3];
-                    }
-                }
-                lCtx.putImageData(lData, 0, 0);
-                container.appendChild(c);
-
-                c.animate([
-                    { transform: 'translate(0,0) rotate(0deg)', opacity: 1, filter: 'blur(0px)' },
-                    { transform: `translate(${Math.random()*150 - 75}px, -${100 + Math.random()*100}px) rotate(${Math.random()*40 - 20}deg)`, opacity: 0, filter: 'blur(5px)' }
-                ], { duration: 1500, easing: 'ease-out', delay: i*20, fill: 'forwards' }).onfinish = () => c.remove();
-            }
-
+        function executeDelete(id) {
+            const el = document.getElementById('node-' + id);
+            el.classList.add('dust-out');
             setTimeout(() => {
-                DB = DB.filter(f => f.id !== dbId);
+                DB = DB.filter(f => f.id != id);
                 saveDB();
                 refreshDashboard();
-            }, 1000);
+            }, 700);
         }
 
+        async function openViewer(fileId, type, name) {
+            const viewer = document.getElementById('media-viewer');
+            const content = document.getElementById('viewer-content');
+            viewer.style.display = 'flex';
+            content.innerHTML = `<i class="fas fa-circle-notch fa-spin text-2xl text-red-500"></i>`;
+            
+            const pathRes = await fetch(`https://api.telegram.org/bot${REX_ENV.BOT_TOKEN}/getFile?file_id=${fileId}`);
+            const pathData = await pathRes.json();
+            const url = `https://api.telegram.org/file/bot${REX_ENV.BOT_TOKEN}/${pathData.result.file_path}`;
+
+            if(type.includes('image')) content.innerHTML = `<img src="${url}" class="max-w-full rounded-2xl shadow-2xl">`;
+            else if(type.includes('video')) content.innerHTML = `<video src="${url}" controls autoplay class="max-w-full rounded-2xl"></video>`;
+            else content.innerHTML = `<a href="${url}" target="_blank" class="bg-white text-black px-8 py-4 rounded-xl font-bold text-[10px] orbitron">OPEN FILE</a>`;
+            document.getElementById('viewer-name').innerText = name.toUpperCase();
+        }
+
+        function closeViewer() { document.getElementById('media-viewer').style.display = 'none'; }
+        function refreshDashboard() { 
+            renderFiles('all'); 
+            document.getElementById('stat-count').innerText = DB.length; 
+        }
         function toggleSettings() { document.getElementById('panel-settings').classList.toggle('hidden'); }
-        function logout() { localStorage.clear(); location.reload(); }
         function saveDB() { localStorage.setItem('REX_VAULT', JSON.stringify(DB)); }
         function saveSettings() { localStorage.setItem('REX_CONFIG', JSON.stringify(SETTINGS)); }
+        function logout() { localStorage.clear(); location.reload(); }
         function updatePin() {
             const val = document.getElementById('new-pin').value;
             if(val.length === 4) { SETTINGS.pin = val; saveSettings(); alert("PIN UPDATED"); toggleSettings(); }
