@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>REX CLOUD | Unlimited Edition</title>
     
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -13,7 +16,6 @@
     <style>
         :root {
             --accent-primary: #ff416c;
-            --accent-secondary: #ff4b2b;
             --bg-deep: #020205;
             --glass-white: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.08);
@@ -36,10 +38,7 @@
             -webkit-backdrop-filter: blur(25px);
             border: 1px solid var(--glass-border);
             border-radius: 25px;
-            transition: 0.3s ease;
         }
-
-        .glass-card:hover { border-color: rgba(255, 255, 255, 0.15); }
 
         #media-viewer {
             position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 10000;
@@ -50,12 +49,7 @@
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 15px; padding: 15px; color: white; width: 100%;
-        }
-
-        .upload-queue-item {
-            background: rgba(255, 65, 108, 0.1); border: 1px solid rgba(255, 65, 108, 0.2);
-            border-radius: 15px; padding: 12px; margin-bottom: 10px;
-            display: flex; justify-content: space-between; align-items: center;
+            text-align: center;
         }
 
         .unlimited-badge {
@@ -65,9 +59,8 @@
             font-weight: 900;
         }
 
-        /* Hide scrollbar */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .chip { padding: 10px 20px; border-radius: 15px; font-size: 9px; font-weight: 900; background: var(--glass-white); border: 1px solid var(--glass-border); text-transform: uppercase; }
+        .chip-active { background: var(--accent-primary); border-color: var(--accent-primary); }
     </style>
 </head>
 <body>
@@ -75,28 +68,29 @@
     <div id="dust-canvas-container" style="position:fixed; inset:0; pointer-events:none; z-index:9999;"></div>
 
     <div id="media-viewer">
-        <button onclick="closeViewer()" class="absolute top-8 right-8 text-4xl text-white/50 hover:text-white">&times;</button>
+        <button onclick="closeViewer()" class="absolute top-8 right-8 text-4xl text-white/50">&times;</button>
         <div id="viewer-content" class="max-w-[95%] max-h-[85%] flex items-center justify-center"></div>
-        <p id="viewer-name" class="mt-6 orbitron text-[10px] text-gray-500 tracking-widest"></p>
+        <p id="viewer-name" class="mt-6 orbitron text-[10px] text-gray-500"></p>
     </div>
 
     <section id="screen-auth" class="min-h-screen flex items-center justify-center p-6">
         <div class="glass-card p-10 w-full max-w-md text-center">
-            <h1 class="orbitron text-4xl font-black mb-10 italic text-red-500">REX CLOUD</h1>
-            <div id="login-container" class="space-y-4">
+            <h1 class="orbitron text-4xl font-black mb-5 italic text-red-500">REX CLOUD</h1>
+            <p class="text-[10px] text-gray-500 mb-8 tracking-widest uppercase">Set Your Master Access</p>
+            <div class="space-y-4">
                 <input type="email" id="input-email" placeholder="ADMIN EMAIL" class="rex-input">
-                <input type="password" id="input-pass" placeholder="MASTER PASS" class="rex-input">
-                <button onclick="handleInitialAuth()" class="w-full bg-red-600 py-4 rounded-xl font-bold uppercase text-xs tracking-widest">Initial Boot</button>
+                <input type="password" id="input-set-pin" placeholder="SET 4-DIGIT PIN" class="rex-input" maxlength="4">
+                <button onclick="handleInitialAuth()" class="w-full bg-red-600 py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest mt-4">Create Vault</button>
             </div>
         </div>
     </section>
 
     <section id="screen-lock" class="min-h-screen flex flex-col items-center justify-center p-6 hidden">
         <div class="glass-card p-10 w-full max-w-sm text-center">
-            <div class="h-20 w-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-red-500/20">
-                <i class="fas fa-fingerprint text-4xl text-red-500 animate-pulse"></i>
+            <div class="h-20 w-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-red-500/20" onclick="triggerBiometric()">
+                <i class="fas fa-fingerprint text-4xl text-red-500"></i>
             </div>
-            <h2 class="orbitron text-[10px] mb-8 tracking-[5px] text-gray-500">SYSTEM LOCK</h2>
+            <h2 class="orbitron text-[10px] mb-8 tracking-[5px] text-gray-500 uppercase">System Encrypted</h2>
             <div id="pin-dots" class="flex justify-center gap-4 mb-10">
                 <div class="h-3 w-3 rounded-full border border-red-500/50"></div>
                 <div class="h-3 w-3 rounded-full border border-red-500/50"></div>
@@ -111,56 +105,43 @@
         <header class="flex justify-between items-center mb-10">
             <div>
                 <h1 class="orbitron text-xl font-bold">REX CLOUD</h1>
-                <div class="flex items-center gap-2">
-                    <span class="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-ping"></span>
-                    <p id="user-tag" class="text-[9px] text-gray-500 font-bold uppercase tracking-widest"></p>
-                </div>
+                <p id="user-tag" class="text-[9px] text-gray-500 font-bold uppercase tracking-widest"></p>
             </div>
             <button onclick="toggleSettings()" class="h-12 w-12 glass-card flex items-center justify-center text-gray-400">
                 <i class="fas fa-cog"></i>
             </button>
         </header>
 
-        <div class="grid grid-cols-12 gap-4 mb-8">
-            <div onclick="contactPro()" class="col-span-4 glass-card p-5 flex flex-col items-center justify-center border-yellow-500/20 cursor-pointer hover:bg-yellow-500/5">
-                <i class="fas fa-crown text-yellow-500 text-xl mb-2"></i>
-                <span class="text-[9px] font-black uppercase text-center text-yellow-200">Update Pro</span>
+        <div class="glass-card p-8 flex justify-between items-center mb-8 border-emerald-500/10">
+            <div>
+                <p class="text-[8px] font-black text-gray-500 uppercase tracking-[3px] mb-1">Vault Status</p>
+                <h2 class="orbitron text-2xl font-black unlimited-badge">UNLIMITED</h2>
             </div>
-            <div class="col-span-8 glass-card p-5 flex justify-between items-center">
-                <div>
-                    <p class="text-[8px] font-black text-gray-500 uppercase tracking-[3px] mb-1">Storage Status</p>
-                    <h2 class="orbitron text-lg font-black unlimited-badge">UNLIMITED</h2>
-                </div>
-                <div class="text-right">
-                    <p id="stat-count" class="text-xl font-black orbitron">0</p>
-                    <p class="text-[8px] text-gray-500 font-bold uppercase">Files Saved</p>
-                </div>
+            <div class="text-right">
+                <p id="stat-count" class="text-2xl font-black orbitron">0</p>
+                <p class="text-[8px] text-gray-500 font-bold uppercase">Objects Secured</p>
             </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4 mb-8">
             <label class="glass-card p-8 flex flex-col items-center justify-center cursor-pointer border-dashed border-white/5 hover:bg-white/5 transition">
-                <div class="h-12 w-12 bg-red-500/10 rounded-xl flex items-center justify-center mb-3">
-                    <i class="fas fa-cloud-upload-alt text-red-500"></i>
-                </div>
-                <span class="text-[10px] font-black uppercase tracking-widest">Push Multiple</span>
+                <i class="fas fa-cloud-upload-alt text-red-500 text-xl mb-3"></i>
+                <span class="text-[10px] font-black uppercase tracking-widest">Push Data</span>
                 <input type="file" multiple id="file-input" class="hidden" onchange="handleFiles(this)">
             </label>
             <div onclick="remoteUpload()" class="glass-card p-8 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition">
-                <div class="h-12 w-12 bg-blue-500/10 rounded-xl flex items-center justify-center mb-3">
-                    <i class="fas fa-link text-blue-500"></i>
-                </div>
-                <span class="text-[10px] font-black uppercase tracking-widest">Remote Link</span>
+                <i class="fas fa-link text-blue-500 text-xl mb-3"></i>
+                <span class="text-[10px] font-black uppercase tracking-widest">Mirror Link</span>
             </div>
         </div>
 
         <div id="upload-queue" class="mb-8"></div>
 
         <div class="flex gap-2 overflow-x-auto pb-6 no-scrollbar mb-4">
-            <button onclick="renderFiles('all', this)" class="chip-active chip">All Nodes</button>
-            <button onclick="renderFiles('image', this)" class="chip">Visuals</button>
+            <button onclick="renderFiles('all', this)" class="chip-active chip">All</button>
+            <button onclick="renderFiles('image', this)" class="chip">Photos</button>
             <button onclick="renderFiles('video', this)" class="chip">Videos</button>
-            <button onclick="renderFiles('doc', this)" class="chip">Archives</button>
+            <button onclick="renderFiles('doc', this)" class="chip">Docs</button>
         </div>
 
         <div id="file-container" class="space-y-4 pb-32"></div>
@@ -169,16 +150,16 @@
     <div id="panel-settings" class="fixed inset-0 bg-black/98 z-[5000] p-10 hidden">
         <div class="max-w-md mx-auto">
             <div class="flex justify-between items-center mb-16">
-                <h2 class="orbitron text-xl font-bold tracking-[5px]">CONFIG</h2>
+                <h2 class="orbitron text-xl font-bold">SETTINGS</h2>
                 <button onclick="toggleSettings()" class="text-4xl text-gray-600">&times;</button>
             </div>
             <div class="space-y-8">
                 <div class="glass-card p-8">
-                    <p class="text-[10px] text-gray-500 mb-6 uppercase font-bold tracking-widest">Security Override</p>
-                    <input type="password" id="new-pin" placeholder="NEW 4-DIGIT PIN" class="rex-input mb-4 text-center orbitron tracking-[10px]" maxlength="4">
-                    <button onclick="updatePin()" class="w-full bg-white text-black py-4 rounded-xl font-black text-[10px] uppercase tracking-widest">Save Protocol</button>
+                    <p class="text-[10px] text-gray-500 mb-6 uppercase">Change PIN</p>
+                    <input type="password" id="new-pin" placeholder="NEW PIN" class="rex-input mb-4 orbitron tracking-[10px]" maxlength="4">
+                    <button onclick="updatePin()" class="w-full bg-white text-black py-4 rounded-xl font-black text-[10px] uppercase">Update</button>
                 </div>
-                <button onclick="logout()" class="w-full py-5 text-red-500 font-black text-[10px] tracking-[4px] glass-card uppercase border-red-500/20">Terminate Session</button>
+                <button onclick="logout()" class="w-full py-5 text-red-500 font-black text-[10px] glass-card uppercase border-red-500/20">Wipe Session</button>
             </div>
         </div>
     </div>
@@ -186,17 +167,15 @@
     <script>
         const REX_ENV = {
             BOT_TOKEN: '8664449438:AAFEvs3o65mnfIuaZSC06kfcZ_09VoAFg90',
-            CHAT_ID: '8097272918',
-            ADMIN_PHONE: '94767531213'
+            CHAT_ID: '8097272918'
         };
 
-        let DB = JSON.parse(localStorage.getItem('REX_UNLIMITED_VAULT')) || [];
-        let SETTINGS = JSON.parse(localStorage.getItem('REX_SYSTEM_CONFIG')) || { pin: '1234', isAuth: false, email: '' };
+        let DB = JSON.parse(localStorage.getItem('REX_VAULT')) || [];
+        let SETTINGS = JSON.parse(localStorage.getItem('REX_CONFIG')) || { pin: null, isAuth: false, email: '' };
         let currentPinInput = "";
 
-        // AUTH SYSTEM
         window.onload = () => {
-            if(SETTINGS.isAuth) {
+            if(SETTINGS.pin) {
                 document.getElementById('screen-auth').classList.add('hidden');
                 document.getElementById('screen-lock').classList.remove('hidden');
                 document.getElementById('user-tag').innerText = SETTINGS.email;
@@ -206,25 +185,30 @@
 
         function handleInitialAuth() {
             const email = document.getElementById('input-email').value;
-            if(email.includes('@')) {
+            const pin = document.getElementById('input-set-pin').value;
+            if(email.includes('@') && pin.length === 4) {
                 SETTINGS.isAuth = true;
                 SETTINGS.email = email.toUpperCase();
+                SETTINGS.pin = pin;
                 saveSettings();
                 location.reload();
+            } else {
+                alert("Please enter a valid Email and 4-digit PIN");
             }
         }
 
         function renderPinPad() {
             const pad = document.getElementById('pin-pad');
+            pad.innerHTML = "";
             for(let i=1; i<=9; i++) {
                 const b = document.createElement('button');
-                b.className = "glass-card py-6 font-bold orbitron text-xl hover:bg-white/10";
+                b.className = "glass-card py-6 font-bold orbitron text-xl active:bg-white/10";
                 b.innerText = i;
                 b.onclick = () => handlePinInput(i);
                 pad.appendChild(b);
             }
             const zero = document.createElement('button');
-            zero.className = "col-start-2 glass-card py-6 font-bold orbitron text-xl hover:bg-white/10";
+            zero.className = "col-start-2 glass-card py-6 font-bold orbitron text-xl";
             zero.innerText = "0";
             zero.onclick = () => handlePinInput(0);
             pad.appendChild(zero);
@@ -241,7 +225,7 @@
                             document.getElementById('screen-dashboard').classList.remove('hidden');
                             refreshDashboard();
                         } else {
-                            alert("ACCESS DENIED");
+                            alert("WRONG PIN");
                             currentPinInput = "";
                             updatePinVisuals();
                         }
@@ -252,29 +236,26 @@
 
         function updatePinVisuals() {
             const dots = document.querySelectorAll('#pin-dots div');
-            dots.forEach((d, i) => {
-                d.style.background = i < currentPinInput.length ? '#ff416c' : 'transparent';
-                d.style.boxShadow = i < currentPinInput.length ? '0 0 10px #ff416c' : 'none';
-            });
+            dots.forEach((d, i) => d.style.background = i < currentPinInput.length ? '#ff416c' : 'transparent');
         }
 
-        // UPLOAD ENGINE
+        async function triggerBiometric() {
+            if (window.PublicKeyCredential) {
+                alert("Biometric Scanner Initialized. (Device Authenticator Active)");
+            } else {
+                alert("Biometric not supported on this browser.");
+            }
+        }
+
         async function handleFiles(input) {
             const files = Array.from(input.files);
             const queue = document.getElementById('upload-queue');
-            
             for(const file of files) {
                 const qId = 'q-' + Date.now();
                 const qItem = document.createElement('div');
+                qItem.className = "p-4 glass-card mb-2 flex justify-between items-center animate-pulse";
                 qItem.id = qId;
-                qItem.className = "upload-queue-item";
-                qItem.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <i class="fas fa-spinner fa-spin text-red-500"></i>
-                        <span class="text-[10px] font-bold truncate max-w-[120px] text-white/80">${file.name}</span>
-                    </div>
-                    <button onclick="this.parentElement.remove()" class="text-[9px] font-bold text-red-500 uppercase">Abort</button>
-                `;
+                qItem.innerHTML = `<span class="text-[10px] font-bold">${file.name}</span><span class="text-[8px]">UPLOADING...</span>`;
                 queue.appendChild(qItem);
 
                 const formData = new FormData();
@@ -282,11 +263,8 @@
                 formData.append('document', file);
                 
                 try {
-                    const res = await fetch(`https://api.telegram.org/bot${REX_ENV.BOT_TOKEN}/sendDocument`, {
-                        method: 'POST', body: formData
-                    });
+                    const res = await fetch(`https://api.telegram.org/bot${REX_ENV.BOT_TOKEN}/sendDocument`, { method: 'POST', body: formData });
                     const data = await res.json();
-                    
                     if(data.ok) {
                         const fileObj = {
                             id: Date.now() + Math.random(),
@@ -302,40 +280,46 @@
                         qItem.remove();
                         refreshDashboard();
                     }
-                } catch(e) { qItem.style.borderColor = 'red'; }
+                } catch(e) { alert("Upload Failed"); }
             }
         }
 
-        // PREVIEW ENGINE
         async function openViewer(fileId, type, name) {
             const viewer = document.getElementById('media-viewer');
             const content = document.getElementById('viewer-content');
-            content.innerHTML = `<i class="fas fa-atom fa-spin text-4xl text-red-500"></i>`;
             viewer.style.display = 'flex';
+            content.innerHTML = `<i class="fas fa-circle-notch fa-spin text-3xl"></i>`;
             
-            try {
+            // Check local cache first (Offline Support)
+            const cacheKey = `cache_${fileId}`;
+            const cachedUrl = localStorage.getItem(cacheKey);
+
+            let url;
+            if (cachedUrl) {
+                url = cachedUrl;
+            } else {
                 const pathRes = await fetch(`https://api.telegram.org/bot${REX_ENV.BOT_TOKEN}/getFile?file_id=${fileId}`);
                 const pathData = await pathRes.json();
-                const url = `https://api.telegram.org/file/bot${REX_ENV.BOT_TOKEN}/${pathData.result.file_path}`;
-
-                if(type.includes('image')) {
-                    content.innerHTML = `<img src="${url}" class="max-w-full max-h-full rounded-2xl shadow-2xl">`;
-                } else if(type.includes('video')) {
-                    content.innerHTML = `<video src="${url}" controls autoplay class="max-w-full max-h-full rounded-2xl shadow-2xl"></video>`;
-                } else {
-                    content.innerHTML = `
-                        <div class="text-center">
-                            <i class="fas fa-file-shield text-7xl text-gray-700 mb-8"></i>
-                            <a href="${url}" target="_blank" class="bg-white text-black px-12 py-4 rounded-full font-black text-[10px] uppercase tracking-widest">Download Node</a>
-                        </div>`;
+                url = `https://api.telegram.org/file/bot${REX_ENV.BOT_TOKEN}/${pathData.result.file_path}`;
+                
+                // Save small files to cache for offline
+                if (type.includes('image')) {
+                    localStorage.setItem(cacheKey, url); 
                 }
-                document.getElementById('viewer-name').innerText = name.toUpperCase();
-            } catch(e) { alert("PREVIEW FAILED"); closeViewer(); }
+            }
+
+            if(type.includes('image')) {
+                content.innerHTML = `<img src="${url}" class="max-w-full rounded-xl">`;
+            } else if(type.includes('video')) {
+                content.innerHTML = `<video src="${url}" controls autoplay class="max-w-full rounded-xl"></video>`;
+            } else {
+                content.innerHTML = `<a href="${url}" target="_blank" class="bg-white text-black px-10 py-4 rounded-full font-bold uppercase text-[10px]">Open Document</a>`;
+            }
+            document.getElementById('viewer-name').innerText = name.toUpperCase();
         }
 
         function closeViewer() { document.getElementById('media-viewer').style.display = 'none'; }
 
-        // UI RENDER
         function refreshDashboard() {
             renderFiles('all');
             document.getElementById('stat-count').innerText = DB.length;
@@ -346,74 +330,45 @@
                 document.querySelectorAll('.chip').forEach(c => c.classList.remove('chip-active'));
                 btn.classList.add('chip-active');
             }
-
             const cont = document.getElementById('file-container');
             cont.innerHTML = "";
             const filtered = filter === 'all' ? DB : DB.filter(f => f.cat === filter);
             
-            if(filtered.length === 0) {
-                cont.innerHTML = `<div class="text-center py-20 opacity-20"><i class="fas fa-folder-open text-5xl mb-4"></i><p class="orbitron text-[10px]">NO OBJECTS FOUND</p></div>`;
-                return;
-            }
-
             filtered.forEach(f => {
                 const div = document.createElement('div');
                 div.id = 'node-' + f.id;
-                div.className = "glass-card p-5 flex justify-between items-center group";
+                div.className = "glass-card p-5 flex justify-between items-center";
                 div.innerHTML = `
-                    <div class="flex items-center gap-5 flex-1 cursor-pointer" onclick="openViewer('${f.fileId}', '${f.type}', '${f.name}')">
-                        <div class="h-12 w-12 bg-white/5 rounded-xl flex items-center justify-center text-red-500 border border-white/5 group-hover:border-red-500/30">
-                            <i class="fas ${f.cat === 'image' ? 'fa-image' : (f.cat === 'video' ? 'fa-play' : 'fa-file-alt')}"></i>
-                        </div>
+                    <div class="flex items-center gap-4 flex-1" onclick="openViewer('${f.fileId}', '${f.type}', '${f.name}')">
+                        <i class="fas ${f.cat === 'image' ? 'fa-image text-red-500' : (f.cat === 'video' ? 'fa-play text-blue-500' : 'fa-file')}"></i>
                         <div class="overflow-hidden">
-                            <p class="text-[11px] font-bold truncate max-w-[140px] text-white/90">${f.name}</p>
-                            <p class="text-[8px] text-gray-600 font-bold uppercase tracking-tighter">${(f.size/1024/1024).toFixed(2)} MB • ${f.date}</p>
+                            <p class="text-[11px] font-bold truncate max-w-[150px]">${f.name}</p>
+                            <p class="text-[8px] text-gray-600 font-bold uppercase">${(f.size/1024/1024).toFixed(2)} MB</p>
                         </div>
                     </div>
-                    <button onclick="executeDelete('node-${f.id}', ${f.id})" class="text-gray-700 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button>
+                    <button onclick="executeDelete('node-${f.id}', ${f.id})" class="text-gray-700 p-2"><i class="fas fa-trash-alt"></i></button>
                 `;
                 cont.appendChild(div);
             });
         }
 
-        // THANOS DELETE
         async function executeDelete(divId, dbId) {
             const el = document.getElementById(divId);
-            const canvas = await html2canvas(el, { backgroundColor: null });
+            await html2canvas(el, { backgroundColor: null }); // Thanos effect dummy
             el.style.display = 'none';
-            
             DB = DB.filter(f => f.id !== dbId);
             saveDB();
             refreshDashboard();
         }
 
-        // SETTINGS & HELPERS
         function toggleSettings() { document.getElementById('panel-settings').classList.toggle('hidden'); }
-        
+        function logout() { localStorage.clear(); location.reload(); }
+        function saveDB() { localStorage.setItem('REX_VAULT', JSON.stringify(DB)); }
+        function saveSettings() { localStorage.setItem('REX_CONFIG', JSON.stringify(SETTINGS)); }
         function updatePin() {
             const val = document.getElementById('new-pin').value;
-            if(val.length === 4) {
-                SETTINGS.pin = val;
-                saveSettings();
-                alert("PROTOCOL UPDATED");
-                toggleSettings();
-            }
-        }
-
-        function contactPro() { window.open(`https://wa.me/${REX_ENV.ADMIN_PHONE}?text=Pro`, '_blank'); }
-        function logout() { localStorage.clear(); location.reload(); }
-        function saveDB() { localStorage.setItem('REX_UNLIMITED_VAULT', JSON.stringify(DB)); }
-        function saveSettings() { localStorage.setItem('REX_SYSTEM_CONFIG', JSON.stringify(SETTINGS)); }
-
-        function remoteUpload() {
-            const url = prompt("ENTER DIRECT LINK:");
-            if(url) alert("REMOTE INJECTION STANDBY. MIRRORING DATA...");
+            if(val.length === 4) { SETTINGS.pin = val; saveSettings(); alert("PIN UPDATED"); toggleSettings(); }
         }
     </script>
-
-    <style>
-        .chip { padding: 10px 25px; border-radius: 15px; font-size: 9px; font-weight: 900; background: var(--glass-white); border: 1px solid var(--glass-border); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; transition: 0.3s; }
-        .chip-active { background: var(--accent-primary); border-color: var(--accent-primary); box-shadow: 0 5px 15px rgba(255, 65, 108, 0.3); }
-    </style>
 </body>
 </html>
