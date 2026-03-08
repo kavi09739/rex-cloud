@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>REX CLOUD | Ultimate</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>REX CLOUD | 1TB Storage</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -13,217 +13,165 @@
         :root { --accent: #ff416c; --bg: #05050a; }
         body { 
             background: radial-gradient(circle at top right, #1a1a2e, #05050a);
-            color: white; 
-            font-family: 'Poppins', sans-serif; 
-            min-height: 100vh;
-            margin: 0;
+            color: white; font-family: 'Poppins', sans-serif; min-height: 100vh;
         }
-        
-        h1, .brand { font-family: 'Orbitron', sans-serif; letter-spacing: 4px; }
-
         .glass {
             background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 24px;
         }
-
-        .input-style {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 14px;
-            border-radius: 16px;
-            width: 100%;
-            color: white;
-            transition: 0.3s;
-        }
-        .input-style:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(255, 65, 108, 0.2); }
-
         .btn-pro {
             background: linear-gradient(45deg, #ff416c, #ff4b2b);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
             transition: 0.4s;
         }
-        .btn-pro:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(255, 65, 108, 0.4); }
-
-        /* File Card Dust Animation Classes */
-        .dust-particle {
-            position: absolute;
-            pointer-events: none;
-            transition: transform 1s ease-out, opacity 1s ease-out;
+        .progress-bar {
+            height: 10px; background: #111; border-radius: 20px; overflow: hidden;
         }
-
-        .file-card {
-            transition: 0.3s;
-            position: relative;
+        .progress-fill {
+            height: 100%; background: linear-gradient(90deg, #00f2fe, #4facfe); width: 0%;
+            transition: 0.5s ease;
         }
     </style>
 </head>
 <body class="p-4 flex flex-col items-center">
 
     <div id="authSection" class="glass p-10 w-full max-w-md mt-12 text-center">
-        <h1 class="text-4xl font-black mb-2 text-white italic">REX CLOUD</h1>
-        <p class="text-gray-500 text-[10px] tracking-[5px] mb-10 uppercase">Secure Mobile Storage</p>
-        
+        <h1 style="font-family: 'Orbitron';" class="text-4xl font-black mb-10 italic">REX CLOUD</h1>
         <div class="space-y-4">
-            <input type="email" id="regEmail" placeholder="Gmail Address" class="input-style">
-            <input type="password" id="regPass" placeholder="Password" class="input-style">
-            <button onclick="handleAuth()" class="btn-pro w-full py-4 rounded-2xl mt-4">Get Started</button>
+            <input type="email" id="email" placeholder="Gmail Address" class="w-full bg-white/5 border border-white/10 p-4 rounded-xl outline-none">
+            <input type="password" id="pass" placeholder="Password" class="w-full bg-white/5 border border-white/10 p-4 rounded-xl outline-none">
+            <button onclick="handleLogin()" class="btn-pro w-full py-4 rounded-2xl font-bold tracking-widest mt-4">AUTHENTICATE</button>
+        </div>
+    </div>
+
+    <div id="lockSection" class="glass p-10 w-full max-w-md mt-12 text-center hidden">
+        <h2 class="text-xl font-bold mb-6">Security Access</h2>
+        <div class="flex flex-col gap-4">
+            <input type="password" id="pin" placeholder="ENTER PIN" class="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-center text-2xl tracking-[10px]">
+            <button onclick="unlock()" class="bg-blue-600 py-3 rounded-xl font-bold">UNLOCK APP</button>
+            <button onclick="unlock()" class="text-3xl mt-4"><i class="fas fa-fingerprint text-red-500"></i></button>
         </div>
     </div>
 
     <div id="mainApp" class="w-full max-w-md mt-6 hidden">
         
-        <div class="flex justify-between items-center mb-6 px-2">
-            <div>
-                <h2 class="text-xl font-bold brand">DASHBOARD</h2>
-                <p class="text-xs text-gray-500" id="userDisplay"></p>
-            </div>
-            <div class="glass h-10 w-10 flex items-center justify-center rounded-full">
-                <i class="fas fa-user-shield text-red-500"></i>
-            </div>
-        </div>
-
         <div class="glass p-6 mb-6">
-            <div class="flex justify-between mb-3 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                <span>Storage usage</span>
-                <span class="text-white">85% Full</span>
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-xs font-bold uppercase tracking-widest text-blue-400">Storage Status</span>
+                <span class="text-[10px] text-gray-500" id="usageText">0% of 1TB Used</span>
             </div>
-            <div class="h-1.5 w-full bg-gray-900 rounded-full overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-red-500 to-orange-500 w-[85%]"></div>
+            <div class="progress-bar mb-6">
+                <div id="bar" class="progress-fill"></div>
             </div>
-            <button onclick="updateToPro()" class="btn-pro w-full mt-6 py-3 rounded-xl text-xs">🚀 UPDATE TO PRO</button>
-        </div>
-
-        <div class="glass p-6 mb-6">
-            <h3 class="text-xs font-bold mb-4 uppercase tracking-widest text-blue-400"><i class="fas fa-cloud-download-alt mr-2"></i>Remote Cloud Upload</h3>
-            <div class="flex flex-col gap-3">
-                <input type="text" id="downloadUrl" placeholder="Paste Download Link Here" class="input-style text-xs">
-                <button onclick="remoteDownload()" class="bg-white text-black py-3 rounded-xl font-bold text-xs hover:bg-gray-200 transition">INJECT TO CLOUD</button>
-            </div>
-        </div>
-
-        <div class="space-y-4" id="fileContainer">
-            <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 ml-2">Recent Files</h3>
             
-            <div class="glass p-5 flex justify-between items-center file-card" id="file1">
-                <div class="flex items-center gap-4">
-                    <div class="h-12 w-12 bg-red-500/10 rounded-xl flex items-center justify-center text-red-500 text-xl">
-                        <i class="fas fa-play-circle"></i>
-                    </div>
-                    <div>
-                        <p class="text-sm font-semibold">Final_Destination_5.mp4</p>
-                        <p class="text-[10px] text-gray-500">1.2 GB • Available Offline</p>
-                    </div>
-                </div>
-                <div class="flex gap-4">
-                    <i class="fas fa-eye text-gray-400 cursor-pointer hover:text-white" title="View"></i>
-                    <i class="fas fa-trash-alt text-gray-600 cursor-pointer hover:text-red-500" onclick="deleteWithDust('file1')" title="Delete"></i>
-                </div>
+            <label class="w-full flex flex-col items-center p-6 glass border-dashed border-2 border-white/20 cursor-pointer hover:bg-white/5 transition">
+                <i class="fas fa-cloud-upload-alt text-4xl mb-2 text-red-500"></i>
+                <span class="text-xs font-bold uppercase">Click to Upload File</span>
+                <input type="file" id="fileInput" class="hidden" onchange="uploadToTelegram(this)">
+            </label>
+        </div>
+
+        <div class="space-y-4" id="fileList">
+            <h3 class="text-xs font-bold uppercase text-gray-500 ml-2">Cloud Files (Offline Cached)</h3>
             </div>
 
-        </div>
+        <button onclick="upgrade()" id="proBtn" class="hidden btn-pro w-full mt-8 py-4 rounded-2xl font-black">UPGRADE TO PRO (LIMIT REACHED)</button>
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyADiuQC24WIRTT__NI4mSgc7vjNpquy4CI",
-            authDomain: "rexcloud-v1.firebaseapp.com",
-            projectId: "rexcloud-v1",
-            storageBucket: "rexcloud-v1.firebasestorage.app",
-            messagingSenderId: "755772237011",
-            appId: "1:755772237011:web:77459b8b9c39beab73e026"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+        const BOT_TOKEN = '8664449438:AAFEvs3o65mnfIuaZSC06kfcZ_09VoAFg90';
+        const CHAT_ID = 'YOUR_TELEGRAM_CHAT_ID'; // ඔබගේ ටෙලිග්‍රෑම් Chat ID එක මෙතනට දමන්න
+        let usedSpace = 0;
+        const totalSpace = 1024 * 1024 * 1024 * 1024; // 1TB
 
         // Auth Logic
-        window.handleAuth = () => {
-            const email = document.getElementById('regEmail').value;
-            const pass = document.getElementById('regPass').value;
-            
-            createUserWithEmailAndPassword(auth, email, pass)
-                .then((user) => {
-                    loginSuccess(user.user.email);
-                })
-                .catch(() => {
-                    signInWithEmailAndPassword(auth, email, pass)
-                        .then((user) => loginSuccess(user.user.email))
-                        .catch(err => alert(err.message));
-                });
+        window.handleLogin = () => {
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('lockSection').classList.remove('hidden');
         };
 
-        function loginSuccess(email) {
-            document.getElementById('authSection').classList.add('hidden');
+        window.unlock = () => {
+            document.getElementById('lockSection').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
-            document.getElementById('userDisplay').innerText = email;
+        };
+
+        // Real Telegram Upload
+        window.uploadToTelegram = async (input) => {
+            const file = input.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('chat_id', CHAT_ID);
+            formData.append('document', file);
+
+            const status = document.createElement('p');
+            status.className = "text-[10px] text-yellow-500 mt-2 text-center animate-pulse";
+            status.innerText = `Uploading ${file.name}...`;
+            document.querySelector('.glass').appendChild(status);
+
+            try {
+                const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (data.ok) {
+                    addFileToUI(file.name, file.size);
+                    updateStorage(file.size);
+                    status.innerText = "Upload Complete!";
+                    setTimeout(() => status.remove(), 2000);
+                }
+            } catch (err) {
+                alert("Upload failed! Check connection.");
+            }
+        };
+
+        function addFileToUI(name, size) {
+            const id = 'f' + Date.now();
+            const div = document.createElement('div');
+            div.className = "glass p-4 flex justify-between items-center";
+            div.id = id;
+            div.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-file-alt text-blue-500"></i>
+                    <div>
+                        <p class="text-xs font-bold">${name}</p>
+                        <p class="text-[9px] text-gray-500">${(size/1024/1024).toFixed(2)} MB</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <i class="fas fa-eye text-gray-400"></i>
+                    <i class="fas fa-trash text-gray-600 hover:text-red-500 cursor-pointer" onclick="deleteFile('${id}')"></i>
+                </div>
+            `;
+            document.getElementById('fileList').appendChild(div);
         }
 
-        // WhatsApp Update
-        window.updateToPro = () => {
+        function updateStorage(size) {
+            usedSpace += size;
+            const percent = (usedSpace / totalSpace) * 100;
+            document.getElementById('bar').style.width = percent + '%';
+            document.getElementById('usageText').innerText = `${percent.toFixed(4)}% of 1TB Used`;
+
+            if(percent > 80) { // උදාහරණයකට 80% පිරුණොත්
+                document.getElementById('proBtn').classList.remove('hidden');
+            }
+        }
+
+        window.upgrade = () => {
             window.open(`https://wa.me/94767531213?text=${encodeURIComponent("I Want Update To Pro")}`, '_blank');
         };
 
-        // Remote Download
-        window.remoteDownload = () => {
-            const url = document.getElementById('downloadUrl').value;
-            if(url) alert("🚀 Injection Started! File is moving to REX CLOUD server.");
-        };
-
-        // --- DUST ANIMATION LOGIC (The Thanos Snap) ---
-        window.deleteWithDust = async (elementId) => {
-            const el = document.getElementById(elementId);
+        // Dust Animation Logic
+        window.deleteFile = async (id) => {
+            const el = document.getElementById(id);
             const canvas = await html2canvas(el, { backgroundColor: null });
-            const ctx = canvas.getContext("2d");
-            const { width, height } = canvas;
-            const imageData = ctx.getImageData(0, 0, width, height);
-            const pixelData = imageData.data;
-
-            el.style.opacity = "0"; // ඇත්ත element එක hide කරනවා
-            
-            const container = document.createElement("div");
-            container.style.position = "fixed";
-            container.style.left = el.getBoundingClientRect().left + "px";
-            container.style.top = el.getBoundingClientRect().top + "px";
-            document.body.appendChild(container);
-
-            for (let i = 0; i < 30; i++) { // පතුරු 30කට කඩනවා
-                const pCanvas = document.createElement("canvas");
-                pCanvas.width = width;
-                pCanvas.height = height;
-                pCanvas.style.position = "absolute";
-                const pCtx = pCanvas.getContext("2d");
-                const pImageData = pCtx.createImageData(width, height);
-
-                for (let j = 0; j < pixelData.length; j += 4) {
-                    if (Math.random() < (i / 30)) continue;
-                    pImageData.data[j] = pixelData[j];
-                    pImageData.data[j+1] = pixelData[j+1];
-                    pImageData.data[j+2] = pixelData[j+2];
-                    pImageData.data[j+3] = pixelData[j+3];
-                }
-                pCtx.putImageData(pImageData, 0, 0);
-                container.appendChild(pCanvas);
-
-                // පතුරු විසිවෙන විදිහ
-                const angle = (Math.random() - 0.5) * 2 * Math.PI;
-                const rotate = (Math.random() - 0.5) * 40;
-                pCanvas.animate([
-                    { transform: "translate(0, 0) rotate(0)", opacity: 1 },
-                    { transform: `translate(${Math.cos(angle) * 100}px, ${Math.sin(angle) * 100}px) rotate(${rotate}deg)`, opacity: 0 }
-                ], { duration: 1500, easing: "ease-out" });
-            }
-
-            setTimeout(() => {
-                container.remove();
-                el.remove();
-            }, 1500);
+            el.style.display = 'none';
+            // Dust Logic (Simplified for performance)
+            alert("File Disintegrated (Dust Animation)");
+            el.remove();
         };
     </script>
 </body>
