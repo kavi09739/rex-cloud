@@ -3,119 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>REX CLOUD | Login</title>
+    <title>REX CLOUD | Next-Gen Storage</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Dark Moody Aesthetic */
-        body {
-            background: radial-gradient(circle at center, #1a1a2e 0%, #080810 100%);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-        }
-
-        /* Glassmorphism Card */
-        .glass-card {
+        :root { --accent: #ff416c; --bg: #080810; }
+        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; }
+        
+        .glass {
             background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 50px 40px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            width: 90%;
-            max-width: 420px;
-            text-align: center;
+            border-radius: 20px;
         }
 
-        .login-btn {
-            background: #ffffff;
-            color: #000;
-            transition: all 0.3s ease;
-            border: none;
+        .input-style {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 12px;
+            width: 100%;
+            color: white;
+            outline: none;
         }
 
-        .login-btn:hover {
-            background: #e2e2e2;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1);
+        .btn-pro {
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            font-weight: bold;
+            transition: 0.3s;
         }
 
-        #status {
-            min-height: 20px;
-            font-size: 0.85rem;
+        .btn-pro:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(255, 65, 108, 0.4); }
+
+        /* Progress Bar Animation */
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00f2fe, #4facfe);
+            width: 85%; /* මෙතනින් පිරෙන ප්‍රමාණය වෙනස් කරන්න */
+            border-radius: 10px;
+            transition: 2s ease-in-out;
         }
     </style>
 </head>
-<body>
+<body class="p-4 flex flex-col items-center">
 
-    <div class="glass-card">
-        <h1 class="text-4xl font-black mb-2 tracking-tighter italic">REX CLOUD</h1>
-        <p class="text-gray-500 mb-10 text-sm uppercase tracking-widest">Mobile Cloud Storage</p>
-        
-        <button id="googleLogin" class="login-btn w-full py-4 rounded-xl font-bold flex items-center justify-center gap-3 shadow-lg">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/layout/google.svg" width="22" alt="G">
-            Continue with Google
-        </button>
+    <div id="authSection" class="glass p-8 w-full max-w-md mt-10">
+        <h1 class="text-3xl font-black italic mb-6 text-center">REX CLOUD</h1>
+        <div class="space-y-4">
+            <input type="text" id="regName" placeholder="Full Name" class="input-style">
+            <input type="email" id="regEmail" placeholder="Gmail Address" class="input-style">
+            <input type="password" id="regPass" placeholder="Create Password" class="input-style">
+            <button onclick="handleAuth()" class="btn-pro w-full py-3 rounded-xl">SIGN UP</button>
+        </div>
+    </div>
 
-        <p id="status" class="mt-6 text-gray-400"></p>
+    <div id="lockSection" class="glass p-8 w-full max-w-md mt-10 hidden">
+        <h2 class="text-xl font-bold mb-4 text-center">Verify Identity</h2>
+        <p class="text-gray-400 text-sm text-center mb-6">Enter Passcode or use Fingerprint</p>
+        <input type="password" id="passcode" placeholder="4-Digit Passcode" class="input-style mb-4 text-center text-2xl tracking-widest">
+        <div class="flex gap-2">
+            <button onclick="unlockApp()" class="btn-pro flex-1 py-3 rounded-xl">UNLOCK</button>
+            <button onclick="biometricAuth()" class="glass px-4 rounded-xl"><i class="fas fa-fingerprint text-2xl"></i></button>
+        </div>
+    </div>
+
+    <div id="mainApp" class="w-full max-w-md mt-6 hidden">
+        <div class="glass p-6 mb-4">
+            <div class="flex justify-between mb-2 text-sm">
+                <span>Storage Used</span>
+                <span>8.5 GB / 10 GB</span>
+            </div>
+            <div class="h-2 w-full bg-gray-800 rounded-full overflow-hidden">
+                <div class="progress-fill"></div>
+            </div>
+            <button onclick="updateToPro()" class="btn-pro w-full mt-6 py-2 rounded-lg text-sm">UPDATE TO PRO</button>
+        </div>
+
+        <div class="glass p-6 mb-4">
+            <h3 class="text-sm font-bold mb-3 uppercase tracking-wider">Remote Download to Cloud</h3>
+            <div class="flex flex-col gap-2">
+                <input type="text" id="downloadUrl" placeholder="Paste link (Google Drive, Mega, etc)" class="input-style text-xs">
+                <button onclick="remoteDownload()" class="bg-blue-600 py-2 rounded-lg font-bold text-xs">START REMOTE UPLOAD</button>
+            </div>
+            <p class="text-[10px] text-gray-500 mt-2">*Files download directly to REX CLOUD storage without using your phone data.</p>
+        </div>
+
+        <div class="glass p-6">
+            <h3 class="text-sm font-bold mb-3">Recent Files (Available Offline)</h3>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center text-xs border-b border-gray-800 pb-2">
+                    <span><i class="far fa-file-video mr-2"></i> movie_hd.mp4</span>
+                    <i class="fas fa-trash text-red-500" onclick="alert('File Deleted')"></i>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script type="module">
-        // Firebase SDKs
+        // Firebase Config (ඔයාගේ කලින් එවපු Config එක)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // ඔයාගේ Config එක මෙතැනට ඇඩ් කළා
         const firebaseConfig = {
             apiKey: "AIzaSyADiuQC24WIRTT__NI4mSgc7vjNpquy4CI",
             authDomain: "rexcloud-v1.firebaseapp.com",
             projectId: "rexcloud-v1",
             storageBucket: "rexcloud-v1.firebasestorage.app",
             messagingSenderId: "755772237011",
-            appId: "1:755772237011:web:77459b8b9c39beab73e026",
-            measurementId: "G-PKW4884288"
+            appId: "1:755772237011:web:77459b8b9c39beab73e026"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
 
-        const loginBtn = document.getElementById('googleLogin');
-        const statusText = document.getElementById('status');
+        // UI Logic Functions (Global scope එකට දාන්න)
+        window.handleAuth = () => {
+            const email = document.getElementById('regEmail').value;
+            const pass = document.getElementById('regPass').value;
+            
+            createUserWithEmailAndPassword(auth, email, pass)
+                .then(() => {
+                    document.getElementById('authSection').classList.add('hidden');
+                    document.getElementById('lockSection').classList.remove('hidden');
+                })
+                .catch(err => alert(err.message));
+        };
 
-        // Login Button එක එබුවම වෙන දේ
-        loginBtn.addEventListener('click', () => {
-            statusText.innerText = "Connecting to Google...";
-            signInWithRedirect(auth, provider);
-        });
+        window.unlockApp = () => {
+            const pin = document.getElementById('passcode').value;
+            if(pin === "1234") { // Temporary PIN
+                document.getElementById('lockSection').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+            } else { alert("Wrong Passcode!"); }
+        };
 
-        // Redirect එකෙන් පස්සේ ආපහු ආවම result එක බලනවා
-        getRedirectResult(auth)
-            .then((result) => {
-                if (result) {
-                    const user = result.user;
-                    statusText.innerText = "Welcome, " + user.displayName + "!";
-                    statusText.style.color = "#4ade80"; // සාර්ථක නම් කොළ පාටින්
-                    
-                    // සාර්ථකව ලොග් වුණාම තත්පර 2කින් පස්සේ home page එකට යවන්න
-                    setTimeout(() => {
-                        window.location.href = "home.html"; 
-                    }, 2000);
-                }
-            }).catch((error) => {
-                if (error.code === 'auth/account-exists-with-different-credential') {
-                    statusText.innerText = "Account already exists.";
-                } else {
-                    statusText.innerText = "Error: " + error.message;
-                }
-                console.error(error);
-            });
+        window.biometricAuth = async () => {
+            alert("Fingerprint Sensor Active... (Waiting for touch)");
+            // WebAuthn API එක මෙතනට පාවිච්චි කළ හැකියි.
+            setTimeout(() => window.unlockApp(), 1000); 
+        };
+
+        window.updateToPro = () => {
+            const msg = "I Want Update To Pro";
+            window.open(`https://wa.me/94767531213?text=${encodeURIComponent(msg)}`, '_blank');
+        };
+
+        window.remoteDownload = () => {
+            const link = document.getElementById('downloadUrl').value;
+            if(link) {
+                alert("Remote Upload Started! You can close the app now. File will appear in your cloud once finished.");
+            }
+        };
     </script>
 </body>
 </html>
