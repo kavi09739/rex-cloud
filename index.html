@@ -3,87 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rex Cloud Pro - Secure 1TB Storage</title>
+    <title>Rex Cloud Pro - Multi-User Storage</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background: #050510; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        
-        .container {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 40px;
-            border-radius: 30px;
-            width: 90%;
-            max-width: 450px;
-            text-align: center;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-        }
-
+        .container { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 40px; border-radius: 30px; width: 90%; max-width: 450px; text-align: center; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); }
         h2 { color: #00d2ff; margin-bottom: 10px; }
-        p { font-size: 14px; opacity: 0.8; margin-bottom: 20px; }
         .hidden { display: none; }
-
-        .btn-main {
-            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
-            color: white; padding: 15px; width: 100%; border-radius: 15px;
-            border: none; font-size: 16px; cursor: pointer; margin-top: 20px;
-            font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
-
+        .btn-main { background: linear-gradient(90deg, #00d2ff, #3a7bd5); color: white; padding: 15px; width: 100%; border-radius: 15px; border: none; font-size: 16px; cursor: pointer; margin-top: 20px; font-weight: 600; }
         .storage-card { background: rgba(0,0,0,0.3); padding: 20px; border-radius: 20px; margin-top: 20px; text-align: left; }
         .storage-bar-bg { background: #222; height: 15px; border-radius: 10px; margin: 15px 0; overflow: hidden; }
         #progress-bar { background: linear-gradient(90deg, #ff00cc, #3333ff); height: 100%; width: 0%; transition: 0.8s; }
-
         .status-msg { background: rgba(255, 71, 87, 0.2); color: #ff4757; padding: 15px; border-radius: 12px; margin-top: 15px; display: none; font-weight: bold; }
-        
-        input[type="password"] {
-            width: 100%; padding: 15px; border-radius: 12px; border: none; background: rgba(255,255,255,0.1);
-            color: white; text-align: center; margin-top: 15px; font-size: 20px; letter-spacing: 8px; outline: none;
-        }
+        input[type="password"] { width: 100%; padding: 15px; border-radius: 12px; border: none; background: rgba(255,255,255,0.1); color: white; text-align: center; margin-top: 15px; font-size: 20px; letter-spacing: 8px; outline: none; }
     </style>
 </head>
 <body>
 
     <div id="login-page" class="container">
         <h2>Rex Cloud ☁️</h2>
-        <p>ඔබේ ගොනු ආරක්ෂිතව 1TB ඉඩක ගබඩා කරන්න.</p>
-        <button class="btn-main" onclick="signInWithGoogle()">
-            <img src="https://img.icons8.com/color/24/000000/google-logo.png" alt="G"/>
-            Google සමඟ ඇතුල් වන්න
-        </button>
+        <p>Google සමඟ ආරක්ෂිතව ලොග් වන්න</p>
+        <button class="btn-main" onclick="signInWithGoogle()">Google Login</button>
     </div>
 
     <div id="security-page" class="container hidden">
         <h2>Security Check 🔒</h2>
-        <p>Drive එක Unlock කිරීමට PIN එක ඇතුළත් කරන්න</p>
+        <p>ඔබේ PIN එක ඇතුළත් කරන්න</p>
         <input type="password" id="pin-input" placeholder="****" maxlength="4">
         <button class="btn-main" onclick="verifyPin()">Unlock Now</button>
-        <p style="margin-top: 15px; font-size: 12px; opacity: 0.5;">Default PIN: 1234</p>
     </div>
 
     <div id="dashboard" class="container hidden">
-        <h2>Rex Dashboard</h2>
+        <h2 id="user-display">Dashboard</h2>
         <div class="storage-card">
-            <p>Storage: <span id="used-txt" style="color:#00d2ff; font-weight:bold;">0</span> GB / <span id="limit-txt">1024</span> GB</p>
+            <p>Storage: <span id="used-txt">0</span> GB / <span id="limit-txt">1024</span> GB</p>
             <div class="storage-bar-bg"><div id="progress-bar"></div></div>
         </div>
-        
-        <button class="btn-main" id="up-btn" onclick="simulateUpload()">Upload New File</button>
-        
+        <button class="btn-main" id="up-btn" onclick="simulateUpload()">Upload File</button>
         <div id="pro-popup" class="status-msg">
-            ⚠️ Storage Full (1TB)! <br> 
-            <button class="btn-main" style="background:#ff4757; margin-top:10px;" onclick="upgradeToPro()">Upgrade to 2TB (Rs. 100)</button>
+            ⚠️ Storage Full! <br> 
+            <button class="btn-main" style="background:#ff4757" onclick="upgradeToPro()">Upgrade to 2TB (Rs. 100)</button>
         </div>
     </div>
 
     <script>
-        // ඔයා දුන්න Firebase Config තොරතුරු මෙතන තියෙනවා
         const firebaseConfig = {
             apiKey: "AIzaSyADiuQC24WIRTT__NI4mSgc7vjNpquy4CI",
             authDomain: "rexcloud-v1.firebaseapp.com",
@@ -95,45 +64,59 @@
         };
         
         firebase.initializeApp(firebaseConfig);
-
+        const db = firebase.firestore();
+        let currentUser = null;
         let usedGB = 0;
-        let limitGB = 1024; // 1TB Default
+        let limitGB = 1024;
 
         function signInWithGoogle() {
             const provider = new firebase.auth.GoogleAuthProvider();
             firebase.auth().signInWithPopup(provider).then((result) => {
+                currentUser = result.user;
                 document.getElementById('login-page').classList.add('hidden');
                 document.getElementById('security-page').classList.remove('hidden');
-            }).catch(err => {
-                alert("Login Error: " + err.message);
-            });
+            }).catch(err => alert(err.message));
         }
 
-        function verifyPin() {
+        async function verifyPin() {
             const pin = document.getElementById('pin-input').value;
-            if(pin === "1234") { 
+            if(pin === "1234") {
+                await loadUserData();
                 document.getElementById('security-page').classList.add('hidden');
                 document.getElementById('dashboard').classList.remove('hidden');
             } else {
-                alert("වැරදි PIN අංකයක්! නැවත උත්සාහ කරන්න.");
+                alert("වැරදි PIN එකක්!");
             }
         }
 
-        function simulateUpload() {
-            // Upload එකක් කරන විට 150GB බැගින් පිරෙනවා වැනි simulation එකක්
+        async function loadUserData() {
+            const userDoc = await db.collection("users").doc(currentUser.uid).get();
+            if (userDoc.exists) {
+                limitGB = userDoc.data().limit || 1024;
+                usedGB = userDoc.data().used || 0;
+            } else {
+                await db.collection("users").doc(currentUser.uid).set({
+                    email: currentUser.email,
+                    limit: 1024,
+                    used: 0
+                });
+            }
+            updateUI();
+        }
+
+        async function simulateUpload() {
             if (usedGB < limitGB) {
-                usedGB += 150; 
+                usedGB += 100;
                 if (usedGB > limitGB) usedGB = limitGB;
+                await db.collection("users").doc(currentUser.uid).update({ used: usedGB });
                 updateUI();
             }
         }
 
         function updateUI() {
-            let percent = (usedGB / limitGB) * 100;
-            document.getElementById('progress-bar').style.width = percent + "%";
             document.getElementById('used-txt').innerText = usedGB;
             document.getElementById('limit-txt').innerText = limitGB;
-
+            document.getElementById('progress-bar').style.width = (usedGB / limitGB) * 100 + "%";
             if (usedGB >= limitGB) {
                 document.getElementById('up-btn').style.display = 'none';
                 document.getElementById('pro-popup').style.display = 'block';
@@ -141,8 +124,7 @@
         }
 
         function upgradeToPro() {
-            // WhatsApp එකට පණිවිඩයක් යැවීම
-            window.open("https://wa.me/94767531213?text=I want to upgrade Rex Cloud to 2TB (Rs.100)", "_blank");
+            window.open("https://wa.me/94771234567?text=RexCloud-Upgrade-Request-ID-" + currentUser.uid, "_blank");
         }
     </script>
 </body>
