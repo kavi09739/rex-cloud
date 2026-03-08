@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rex Cloud - Unlimited Storage</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        body {
+            background: #050510;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Glassmorphism Design */
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        h2 { font-weight: 600; margin-bottom: 10px; color: #00d2ff; }
+        p { font-size: 14px; opacity: 0.7; margin-bottom: 25px; }
+
+        /* Login Button */
+        .btn-google {
+            background: white;
+            color: #333;
+            padding: 12px 20px;
+            border-radius: 50px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            transition: 0.3s;
+        }
+
+        /* Dashboard Styles */
+        .storage-card { margin-top: 20px; text-align: left; }
+        .progress-bg {
+            background: #222;
+            height: 12px;
+            border-radius: 10px;
+            margin: 15px 0;
+            position: relative;
+        }
+        #progress-bar {
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            height: 100%;
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.8s ease;
+        }
+
+        .upload-btn {
+            background: #3a7bd5;
+            color: white;
+            padding: 15px;
+            width: 100%;
+            border-radius: 15px;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .pro-msg {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+            font-weight: bold;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="login-page" class="container">
+        <h2>Rex Cloud ☁️</h2>
+        <p>ඔබේ සියලුම Files ආරක්ෂිතව 1TB ඉඩක ගබඩා කරන්න.</p>
+        <button class="btn-google" onclick="handleLogin()">
+            <img src="https://img.icons8.com/color/24/000000/google-logo.png"/>
+            Google සමඟ ඇතුල් වන්න
+        </button>
+    </div>
+
+    <div id="dashboard" class="container hidden">
+        <h2>Dashboard</h2>
+        <div class="storage-card">
+            <p>Storage Used: <span id="used-txt">0</span> GB / 1024 GB</p>
+            <div class="progress-bg">
+                <div id="progress-bar"></div>
+            </div>
+        </div>
+        
+        <button class="upload-btn" id="up-btn" onclick="simulateUpload()">Upload New File</button>
+        
+        <div id="pro-popup" class="pro-msg">
+            ⚠️ Storage Full! <br> Update To Pro for 2TB or 5TB
+        </div>
+    </div>
+
+    <script>
+        let usedGB = 0;
+        const limitGB = 1024; // 1TB limit
+
+        function handleLogin() {
+            // මෙතනදී අපි පස්සේ Firebase Connect කරනවා
+            alert("සාර්ථකව Login වුණා! (Firebase integration coming soon)");
+            document.getElementById('login-page').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+        }
+
+        function simulateUpload() {
+            if (usedGB < limitGB) {
+                // නිකන් පිරෙනවා බලන්න අපි එක සැරේට 150GB එකතු කරමු
+                usedGB += 150; 
+                if (usedGB > limitGB) usedGB = limitGB;
+
+                updateUI();
+            }
+        }
+
+        function updateUI() {
+            let percent = (usedGB / limitGB) * 100;
+            document.getElementById('progress-bar').style.width = percent + "%";
+            document.getElementById('used-txt').innerText = usedGB;
+
+            if (usedGB >= limitGB) {
+                document.getElementById('up-btn').style.display = 'none';
+                document.getElementById('pro-popup').style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
