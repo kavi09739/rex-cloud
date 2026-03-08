@@ -1,9 +1,9 @@
-<!DOCTYPE html>
-<html lang="si">
+ <!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rex Cloud Pro - Multi-User Storage</title>
+    <title>Rex Cloud Pro - Ultimate Storage</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
@@ -12,119 +12,258 @@
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background: #050510; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 40px; border-radius: 30px; width: 90%; max-width: 450px; text-align: center; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); }
+        body { background: #050510; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden; }
+        
+        .container { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 20px; width: 95%; max-width: 500px; text-align: center; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); }
         h2 { color: #00d2ff; margin-bottom: 10px; }
-        .hidden { display: none; }
-        .btn-main { background: linear-gradient(90deg, #00d2ff, #3a7bd5); color: white; padding: 15px; width: 100%; border-radius: 15px; border: none; font-size: 16px; cursor: pointer; margin-top: 20px; font-weight: 600; }
-        .storage-card { background: rgba(0,0,0,0.3); padding: 20px; border-radius: 20px; margin-top: 20px; text-align: left; }
-        .storage-bar-bg { background: #222; height: 15px; border-radius: 10px; margin: 15px 0; overflow: hidden; }
-        #progress-bar { background: linear-gradient(90deg, #ff00cc, #3333ff); height: 100%; width: 0%; transition: 0.8s; }
-        .status-msg { background: rgba(255, 71, 87, 0.2); color: #ff4757; padding: 15px; border-radius: 12px; margin-top: 15px; display: none; font-weight: bold; }
-        input[type="password"] { width: 100%; padding: 15px; border-radius: 12px; border: none; background: rgba(255,255,255,0.1); color: white; text-align: center; margin-top: 15px; font-size: 20px; letter-spacing: 8px; outline: none; }
+        .hidden { display: none !important; }
+        
+        .btn-main { background: linear-gradient(90deg, #00d2ff, #3a7bd5); color: white; padding: 12px; width: 100%; border-radius: 12px; border: none; font-size: 16px; cursor: pointer; margin-top: 15px; font-weight: 600; transition: 0.3s; }
+        .btn-main:active { transform: scale(0.98); }
+        .btn-danger { background: #ff4757; }
+        
+        .storage-card { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 15px; margin-top: 15px; text-align: left; }
+        .storage-bar-bg { background: #222; height: 12px; border-radius: 10px; margin: 10px 0; overflow: hidden; }
+        #progress-bar { background: linear-gradient(90deg, #ff00cc, #3333ff); height: 100%; width: 0%; transition: width 0.8s ease; }
+        
+        input[type="password"], input[type="file"] { width: 100%; padding: 12px; border-radius: 10px; border: none; background: rgba(255,255,255,0.1); color: white; text-align: center; margin-top: 15px; font-size: 16px; outline: none; }
+        input[type="password"] { letter-spacing: 5px; font-size: 20px; }
+        
+        /* Categories Grid */
+        .categories { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
+        .cat-box { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 12px; cursor: pointer; font-size: 12px; transition: 0.3s; }
+        .cat-box:hover { background: rgba(0, 210, 255, 0.3); }
+        
+        /* File List */
+        .file-list { margin-top: 20px; max-height: 200px; overflow-y: auto; text-align: left; }
+        .file-item { background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .file-actions span { cursor: pointer; margin-left: 10px; font-size: 18px; }
+
+        /* Dust Animation for Deletion */
+        .dust-away { animation: dustAnim 0.6s forwards; }
+        @keyframes dustAnim {
+            0% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+            50% { opacity: 0.5; transform: scale(1.05) translateY(-10px); filter: blur(3px); }
+            100% { opacity: 0; transform: scale(0.8) translateY(-30px); filter: blur(8px); }
+        }
     </style>
 </head>
 <body>
 
     <div id="login-page" class="container">
         <h2>Rex Cloud ☁️</h2>
-        <p>Google සමඟ ආරක්ෂිතව ලොග් වන්න</p>
-        <button class="btn-main" onclick="signInWithGoogle()">Google Login</button>
+        <p>Sign Up or Log In Securely</p>
+        <button class="btn-main" onclick="signInWithGoogle()">Sign In / Sign Up with Google</button>
     </div>
 
     <div id="security-page" class="container hidden">
         <h2>Security Check 🔒</h2>
-        <p>ඔබේ PIN එක ඇතුළත් කරන්න</p>
+        <div id="biometric-area" class="hidden">
+            <h1 style="margin: 20px 0; cursor: pointer;" onclick="tryBiometrics()">☝️</h1>
+            <p style="font-size: 14px;">Tap to use Fingerprint</p>
+            <p style="font-size: 12px; opacity: 0.6; margin-top: 5px;">Or enter your PIN</p>
+        </div>
         <input type="password" id="pin-input" placeholder="****" maxlength="4">
-        <button class="btn-main" onclick="verifyPin()">Unlock Now</button>
+        <button class="btn-main" onclick="verifyPin()">Unlock Drive</button>
     </div>
 
     <div id="dashboard" class="container hidden">
-        <h2 id="user-display">Dashboard</h2>
+        <h2>Rex Dashboard</h2>
+        
         <div class="storage-card">
-            <p>Storage: <span id="used-txt">0</span> GB / <span id="limit-txt">1024</span> GB</p>
+            <p style="font-size: 14px;">Storage: <span id="used-txt" style="color:#00d2ff">0</span> GB / <span id="limit-txt">1024</span> GB</p>
             <div class="storage-bar-bg"><div id="progress-bar"></div></div>
         </div>
-        <button class="btn-main" id="up-btn" onclick="simulateUpload()">Upload File</button>
-        <div id="pro-popup" class="status-msg">
-            ⚠️ Storage Full! <br> 
-            <button class="btn-main" style="background:#ff4757" onclick="upgradeToPro()">Upgrade to 2TB (Rs. 100)</button>
+
+        <input type="file" id="file-uploader" style="display: none;" onchange="handleFileUpload(event)">
+        <button class="btn-main" id="up-btn" onclick="document.getElementById('file-uploader').click()">+ Upload File</button>
+        
+        <div id="pro-popup" class="hidden" style="margin-top: 15px;">
+            <p style="color: #ff4757; font-weight: bold;">⚠️ Storage Full!</p>
+            <button class="btn-main btn-danger" onclick="upgradeToPro()">Update to Pro (Rs. 100)</button>
         </div>
+
+        <div class="categories">
+            <div class="cat-box" onclick="filterFiles('Image')">🖼️ Images</div>
+            <div class="cat-box" onclick="filterFiles('Video')">🎬 Videos</div>
+            <div class="cat-box" onclick="filterFiles('Audio')">🎵 Audio</div>
+            <div class="cat-box" onclick="filterFiles('Document')">📄 Docs</div>
+            <div class="cat-box" onclick="filterFiles('APK')">📦 APKs</div>
+            <div class="cat-box" onclick="filterFiles('All')">📂 All Files</div>
+        </div>
+
+        <div class="file-list" id="file-list-container">
+            </div>
     </div>
 
     <script>
+        // 1. Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyADiuQC24WIRTT__NI4mSgc7vjNpquy4CI",
             authDomain: "rexcloud-v1.firebaseapp.com",
             projectId: "rexcloud-v1",
             storageBucket: "rexcloud-v1.firebasestorage.app",
             messagingSenderId: "755772237011",
-            appId: "1:755772237011:web:77459b8b9c39beab73e026",
-            measurementId: "G-PKW4884288"
+            appId: "1:755772237011:web:77459b8b9c39beab73e026"
         };
-        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        
+        // 2. Telegram Bot Setup
+        const TELEGRAM_BOT_TOKEN = "8664449438:AAFEvs3o65mnfIuaZSC06kfcZ_09VoAFg90";
+        // To use Telegram as storage, you usually need a Chat ID (your private channel)
+        // For this demo, we'll simulate the frontend logic.
+        const TELEGRAM_CHAT_ID = "YOUR_CHANNEL_ID"; 
+
         let currentUser = null;
-        let usedGB = 0;
-        let limitGB = 1024;
+        let usedGB = 0; let limitGB = 1024;
+        let filesArray = JSON.parse(localStorage.getItem('rexOfflineFiles')) || []; // Offline Caching
+
+        // Check if user is already logged in
+        firebase.auth().onAuthStateChanged(user => {
+            if(user) {
+                currentUser = user;
+                showSecurityPage();
+            }
+        });
 
         function signInWithGoogle() {
             const provider = new firebase.auth.GoogleAuthProvider();
-            firebase.auth().signInWithPopup(provider).then((result) => {
-                currentUser = result.user;
-                document.getElementById('login-page').classList.add('hidden');
-                document.getElementById('security-page').classList.remove('hidden');
-            }).catch(err => alert(err.message));
+            firebase.auth().signInWithPopup(provider).catch(err => alert("Error: " + err.message));
         }
 
-        async function verifyPin() {
-            const pin = document.getElementById('pin-input').value;
-            if(pin === "1234") {
-                await loadUserData();
-                document.getElementById('security-page').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-            } else {
-                alert("වැරදි PIN එකක්!");
+        function showSecurityPage() {
+            document.getElementById('login-page').classList.add('hidden');
+            document.getElementById('security-page').classList.remove('hidden');
+            if (window.PublicKeyCredential) {
+                document.getElementById('biometric-area').classList.remove('hidden');
             }
         }
 
+        function tryBiometrics() {
+            alert("Touch the fingerprint sensor...");
+            unlockApp(); // Simulation for frontend
+        }
+
+        function verifyPin() {
+            if(document.getElementById('pin-input').value === "1234") unlockApp();
+            else alert("Incorrect PIN!");
+        }
+
+        async function unlockApp() {
+            document.getElementById('security-page').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            await loadUserData();
+            renderFiles('All');
+        }
+
         async function loadUserData() {
+            if(!navigator.onLine) return; // Skip DB fetch if offline
             const userDoc = await db.collection("users").doc(currentUser.uid).get();
             if (userDoc.exists) {
                 limitGB = userDoc.data().limit || 1024;
                 usedGB = userDoc.data().used || 0;
             } else {
-                await db.collection("users").doc(currentUser.uid).set({
-                    email: currentUser.email,
-                    limit: 1024,
-                    used: 0
-                });
+                await db.collection("users").doc(currentUser.uid).set({ email: currentUser.email, limit: 1024, used: 0 });
             }
             updateUI();
         }
 
-        async function simulateUpload() {
-            if (usedGB < limitGB) {
-                usedGB += 100;
-                if (usedGB > limitGB) usedGB = limitGB;
-                await db.collection("users").doc(currentUser.uid).update({ used: usedGB });
-                updateUI();
+        function updateUI() {
+            document.getElementById('used-txt').innerText = usedGB.toFixed(2);
+            document.getElementById('limit-txt').innerText = limitGB;
+            document.getElementById('progress-bar').style.width = Math.min((usedGB / limitGB) * 100, 100) + "%";
+            
+            if (usedGB >= limitGB) {
+                document.getElementById('up-btn').classList.add('hidden');
+                document.getElementById('pro-popup').classList.remove('hidden');
             }
         }
 
-        function updateUI() {
-            document.getElementById('used-txt').innerText = usedGB;
-            document.getElementById('limit-txt').innerText = limitGB;
-            document.getElementById('progress-bar').style.width = (usedGB / limitGB) * 100 + "%";
-            if (usedGB >= limitGB) {
-                document.getElementById('up-btn').style.display = 'none';
-                document.getElementById('pro-popup').style.display = 'block';
+        // Handle Upload & Telegram Integration
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+
+            let fileType = "Document";
+            if(file.type.includes('image')) fileType = "Image";
+            else if(file.type.includes('video')) fileType = "Video";
+            else if(file.type.includes('audio')) fileType = "Audio";
+            else if(file.name.endsWith('.apk')) fileType = "APK";
+
+            // Simulating size increment (Convert bytes to GB)
+            let fileSizeGB = file.size / (1024 * 1024 * 1024);
+            usedGB += fileSizeGB;
+
+            // Telegram API Upload Logic (Structure)
+            /*
+            const formData = new FormData();
+            formData.append("chat_id", TELEGRAM_CHAT_ID);
+            formData.append("document", file);
+            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument`, {
+                method: "POST", body: formData
+            }).then(res => res.json()).then(data => { ...save file_id to DB });
+            */
+            
+            // Save to local logic
+            const fileObj = { id: Date.now(), name: file.name, type: fileType, size: fileSizeGB };
+            filesArray.push(fileObj);
+            localStorage.setItem('rexOfflineFiles', JSON.stringify(filesArray)); // Cache for offline
+
+            if(navigator.onLine) {
+                await db.collection("users").doc(currentUser.uid).update({ used: usedGB });
             }
+            
+            updateUI();
+            renderFiles('All');
         }
+
+        function renderFiles(filterType) {
+            const container = document.getElementById('file-list-container');
+            container.innerHTML = "";
+            filesArray.forEach(file => {
+                if(filterType !== 'All' && file.type !== filterType) return;
+                
+                const div = document.createElement('div');
+                div.className = 'file-item';
+                div.id = `file-${file.id}`;
+                div.innerHTML = `
+                    <div style="font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;">
+                        <b>${file.name}</b> <br> <span style="opacity:0.6">${file.type}</span>
+                    </div>
+                    <div class="file-actions">
+                        <span title="Download">⬇️</span>
+                        <span title="Delete" onclick="deleteFile(${file.id}, ${file.size})">🗑️</span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        async function deleteFile(id, sizeGB) {
+            const fileEl = document.getElementById(`file-${id}`);
+            fileEl.classList.add('dust-away'); // Trigger Dust Animation
+            
+            setTimeout(async () => {
+                filesArray = filesArray.filter(f => f.id !== id);
+                localStorage.setItem('rexOfflineFiles', JSON.stringify(filesArray));
+                
+                usedGB -= sizeGB;
+                if(usedGB < 0) usedGB = 0;
+                
+                if(navigator.onLine) {
+                    await db.collection("users").doc(currentUser.uid).update({ used: usedGB });
+                }
+                
+                updateUI();
+                renderFiles('All');
+            }, 600); // Wait for animation to finish
+        }
+
+        function filterFiles(type) { renderFiles(type); }
 
         function upgradeToPro() {
-            window.open("https://wa.me/94771234567?text=RexCloud-Upgrade-Request-ID-" + currentUser.uid, "_blank");
+            window.open("https://wa.me/94767531213?text=RexCloud Pro Update Request", "_blank");
         }
     </script>
 </body>
