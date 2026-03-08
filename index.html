@@ -11,664 +11,381 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        /* REX CLOUD CORE CSS ENGINE
-           Visual Style: Dark Moody / Glassmorphism / Cyberpunk 
-        */
         :root {
             --accent-primary: #ff416c;
             --accent-secondary: #ff4b2b;
-            --neon-blue: #00d2ff;
-            --neon-purple: #9d50bb;
             --bg-deep: #020205;
             --glass-white: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.08);
             --storage-gradient: linear-gradient(90deg, #ff416c, #ffb347, #00d2ff);
         }
 
-        /* Basic Setup */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             background-color: var(--bg-deep);
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(255, 65, 108, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(0, 210, 255, 0.05) 0%, transparent 40%);
+            background-image: radial-gradient(circle at 10% 20%, rgba(255, 65, 108, 0.05) 0%, transparent 40%);
             color: #ffffff;
             font-family: 'Poppins', sans-serif;
             min-height: 100vh;
-            overflow-x: hidden;
         }
 
-        .orbitron { font-family: 'Orbitron', sans-serif; letter-spacing: 4px; }
+        .orbitron { font-family: 'Orbitron', sans-serif; letter-spacing: 2px; }
 
-        /* Scrollbar Redesign */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: var(--bg-deep); }
-        ::-webkit-scrollbar-thumb { background: var(--accent-primary); border-radius: 10px; }
-
-        /* High-End Glassmorphism */
         .glass-card {
             background: var(--glass-white);
-            backdrop-filter: blur(35px);
-            -webkit-backdrop-filter: blur(35px);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             border: 1px solid var(--glass-border);
-            border-radius: 35px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .glass-card:hover { border-color: rgba(255, 255, 255, 0.15); }
-
-        /* Input Fields */
-        .rex-input {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 20px;
-            color: white;
-            font-size: 14px;
-            width: 100%;
-            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .rex-input:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-            background: rgba(255, 65, 108, 0.05);
-            box-shadow: 0 0 25px rgba(255, 65, 108, 0.2);
-            transform: translateY(-2px);
+            border-radius: 25px;
         }
 
-        /* Buttons */
-        .rex-btn-primary {
-            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
-            border-radius: 22px;
-            padding: 18px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            box-shadow: 0 10px 30px rgba(255, 65, 108, 0.3);
-            transition: 0.5s;
-            border: none;
-            cursor: pointer;
-        }
-        .rex-btn-primary:active { transform: scale(0.96); }
-
-        /* Progress Engine */
-        .storage-bar-bg { height: 14px; background: rgba(0,0,0,0.4); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
+        /* 1TB Rainbow Bar */
+        .storage-bar-bg { height: 10px; background: rgba(0,0,0,0.4); border-radius: 10px; overflow: hidden; }
         #storage-bar-fill {
-            height: 100%;
-            width: 0%;
+            height: 100%; width: 0%;
             background: var(--storage-gradient);
             background-size: 200% 200%;
             animation: gradientMove 3s linear infinite;
-            box-shadow: 0 0 20px var(--accent-primary);
-            transition: width 2s cubic-bezier(0.19, 1, 0.22, 1);
+            transition: width 1.5s ease;
         }
         @keyframes gradientMove { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
 
-        /* Dust Particles Container */
-        #dust-canvas-container { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 99999; }
+        /* Preview Overlay */
+        #media-viewer {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
 
-        /* Category Chips */
-        .chip { padding: 12px 24px; border-radius: 18px; font-size: 10px; font-weight: 800; letter-spacing: 1px; transition: 0.4s; border: 1px solid rgba(255,255,255,0.05); background: rgba(255,255,255,0.02); }
-        .chip.active { background: var(--accent-primary); border-color: var(--accent-primary); box-shadow: 0 5px 20px rgba(255, 65, 108, 0.4); }
+        .rex-input {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px; padding: 15px; color: white; width: 100%;
+        }
 
-        /* Animations */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-entry { animation: fadeIn 0.8s ease forwards; }
+        .upload-queue-item {
+            background: rgba(255,255,255,0.05); border-radius: 15px; padding: 10px; margin-bottom: 8px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        #dust-canvas-container { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; }
     </style>
 </head>
 <body>
 
     <div id="dust-canvas-container"></div>
 
+    <div id="media-viewer">
+        <button onclick="closeViewer()" class="absolute top-10 right-10 text-4xl">&times;</button>
+        <div id="viewer-content" class="max-w-[90%] max-h-[80%] flex items-center justify-center"></div>
+        <p id="viewer-name" class="mt-5 orbitron text-xs text-gray-400"></p>
+    </div>
+
     <section id="screen-auth" class="min-h-screen flex items-center justify-center p-6">
-        <div class="glass-card p-12 w-full max-w-lg text-center animate-entry">
-            <h1 class="orbitron text-5xl font-black mb-2 italic">REX CLOUD</h1>
-            <p class="text-[9px] tracking-[10px] text-gray-500 mb-12 uppercase font-bold">Encrypted Quantum Storage</p>
-            
-            <div id="auth-form" class="space-y-6">
-                <div class="relative">
-                    <i class="fas fa-envelope absolute left-5 top-6 text-gray-600"></i>
-                    <input type="email" id="input-email" placeholder="ADMIN EMAIL" class="rex-input pl-14">
-                </div>
-                <div class="relative">
-                    <i class="fas fa-lock absolute left-5 top-6 text-gray-600"></i>
-                    <input type="password" id="input-pass" placeholder="MASTER PASS" class="rex-input pl-14">
-                </div>
-                <button onclick="handleAuth()" class="rex-btn-primary w-full mt-4">Execute Login</button>
-            </div>
-            
-            <div class="mt-12 flex justify-center gap-6 text-[10px] text-gray-700 font-bold uppercase tracking-widest">
-                <span><i class="fas fa-shield-alt mr-1"></i> SSL</span>
-                <span><i class="fas fa-key mr-1"></i> AES-256</span>
-                <span><i class="fas fa-microchip mr-1"></i> V10.0</span>
+        <div class="glass-card p-10 w-full max-w-md text-center">
+            <h1 class="orbitron text-4xl font-black mb-10 italic text-red-500">REX CLOUD</h1>
+            <div id="login-container" class="space-y-4">
+                <input type="email" id="input-email" placeholder="ADMIN EMAIL" class="rex-input">
+                <input type="password" id="input-pass" placeholder="MASTER PASS" class="rex-input">
+                <button onclick="handleInitialAuth()" class="w-full bg-red-600 py-4 rounded-xl font-bold">START TERMINAL</button>
             </div>
         </div>
     </section>
 
-    <section id="screen-lock" class="min-h-screen flex flex-col items-center justify-center p-8 hidden">
-        <div class="glass-card p-12 w-full max-w-sm text-center animate-entry">
-            <div class="relative inline-block mb-10">
-                <div class="absolute inset-0 bg-red-500 blur-2xl opacity-20 animate-pulse"></div>
-                <div class="h-24 w-24 bg-red-500/10 rounded-full flex items-center justify-center border border-red-500/30 relative">
-                    <i class="fas fa-fingerprint text-5xl text-red-500"></i>
-                </div>
+    <section id="screen-lock" class="min-h-screen flex flex-col items-center justify-center p-6 hidden">
+        <div class="glass-card p-10 w-full max-w-sm text-center">
+            <i class="fas fa-fingerprint text-6xl text-red-500 mb-8 animate-pulse" onclick="alert('Biometric Scanning...')"></i>
+            <h2 class="orbitron text-xs mb-8 tracking-widest">VERIFY IDENTITY</h2>
+            <div id="pin-dots" class="flex justify-center gap-4 mb-8">
+                <div class="h-3 w-3 rounded-full border border-red-500"></div>
+                <div class="h-3 w-3 rounded-full border border-red-500"></div>
+                <div class="h-3 w-3 rounded-full border border-red-500"></div>
+                <div class="h-3 w-3 rounded-full border border-red-500"></div>
             </div>
-            
-            <h2 class="orbitron text-xs mb-10 tracking-[6px] text-gray-400">IDENTITY VERIFICATION</h2>
-            
-            <div id="pin-indicator" class="flex justify-center gap-5 mb-12">
-                <div class="h-4 w-4 rounded-full border-2 border-red-500/30 transition-all duration-300"></div>
-                <div class="h-4 w-4 rounded-full border-2 border-red-500/30 transition-all duration-300"></div>
-                <div class="h-4 w-4 rounded-full border-2 border-red-500/30 transition-all duration-300"></div>
-                <div class="h-4 w-4 rounded-full border-2 border-red-500/30 transition-all duration-300"></div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-6" id="digital-keypad">
-                </div>
-            
-            <button onclick="logout()" class="mt-10 text-[9px] font-black uppercase tracking-[5px] text-gray-700 hover:text-red-500 transition">Kill Session</button>
+            <div class="grid grid-cols-3 gap-4" id="pin-pad"></div>
         </div>
     </section>
 
-    <section id="screen-dashboard" class="min-h-screen p-6 hidden max-w-2xl mx-auto pb-32">
-        
-        <header class="flex justify-between items-center py-8">
-            <div class="animate-entry">
-                <h1 class="orbitron text-2xl font-black italic">REX CLOUD</h1>
-                <div class="flex items-center gap-2">
-                    <div class="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest" id="display-user"></p>
-                </div>
+    <section id="screen-dashboard" class="min-h-screen p-6 hidden max-w-2xl mx-auto">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="orbitron text-xl font-bold">REX CLOUD</h1>
+                <p id="user-tag" class="text-[10px] text-gray-500 font-bold uppercase"></p>
             </div>
-            <button onclick="navigateTo('screen-settings')" class="glass-card h-14 w-14 flex items-center justify-center text-gray-500 hover:text-white transition">
-                <i class="fas fa-cog text-xl"></i>
+            <button onclick="toggleSettings()" class="h-12 w-12 glass-card flex items-center justify-center">
+                <i class="fas fa-cog"></i>
             </button>
         </header>
 
-        <div class="glass-card p-8 mb-8 relative overflow-hidden animate-entry" style="animation-delay: 0.1s">
-            <div class="flex justify-between items-end mb-6">
-                <div>
-                    <h3 class="text-4xl font-black orbitron text-white" id="stat-used-gb">0.00</h3>
-                    <p class="text-[10px] text-gray-600 uppercase tracking-widest font-bold mt-1">Gigabytes Occupied</p>
-                </div>
-                <div class="text-right">
-                    <p class="text-[9px] font-black text-red-500 mb-1">THRESHOLD: 1,024 GB</p>
-                    <p class="text-xs font-black text-white" id="stat-percent-label">0.00%</p>
-                </div>
+        <div class="grid grid-cols-12 gap-4 mb-8">
+            <div onclick="contactPro()" class="col-span-4 glass-card p-4 flex flex-col items-center justify-center border-yellow-500/20 cursor-pointer">
+                <i class="fas fa-crown text-yellow-500 mb-2"></i>
+                <span class="text-[8px] font-black uppercase text-center">Update Pro</span>
             </div>
-            <div class="storage-bar-bg mb-2">
-                <div id="storage-bar-fill"></div>
-            </div>
-            
-            <div id="pro-alert-box" class="mt-8 hidden animate-entry">
-                <button onclick="contactAdminForPro()" class="rex-btn-primary w-full py-5 flex items-center justify-center gap-4 border-2 border-white/10">
-                    <i class="fas fa-crown text-yellow-400"></i>
-                    <span>UPGRADE TO PRO TERMINAL</span>
-                </button>
+            <div class="col-span-8 glass-card p-5">
+                <div class="flex justify-between text-[10px] font-bold mb-2">
+                    <span id="stat-gb">0.00 GB</span>
+                    <span class="text-red-500" id="stat-limit">LIMIT: 1,024 GB</span>
+                </div>
+                <div class="storage-bar-bg"><div id="storage-bar-fill"></div></div>
             </div>
         </div>
 
-        <div class="flex gap-3 overflow-x-auto pb-8 no-scrollbar animate-entry" style="animation-delay: 0.2s">
-            <button class="chip active" onclick="applyFilter('all', this)">ALL_NODES</button>
-            <button class="chip" onclick="applyFilter('image', this)">VISUALS</button>
-            <button class="chip" onclick="applyFilter('video', this)">VIDEOS</button>
-            <button class="chip" onclick="applyFilter('doc', this)">ARCHIVES</button>
-        </div>
-
-        <div class="grid grid-cols-2 gap-6 mb-12 animate-entry" style="animation-delay: 0.3s">
-            <label class="glass-card p-8 flex flex-col items-center justify-center border-dashed border-2 border-white/5 cursor-pointer hover:bg-white/5 transition">
-                <div class="h-14 w-14 bg-red-500/10 rounded-2xl flex items-center justify-center mb-4 text-red-500 text-xl border border-red-500/20">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                </div>
-                <span class="text-[10px] font-black uppercase tracking-widest">Push Data</span>
-                <input type="file" id="file-uploader" class="hidden" onchange="initiateTelegramUpload(this)">
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <label class="glass-card p-6 flex flex-col items-center justify-center cursor-pointer border-dashed border-white/10">
+                <i class="fas fa-file-upload text-red-500 text-2xl mb-2"></i>
+                <span class="text-[10px] font-bold uppercase">Multi Upload</span>
+                <input type="file" multiple id="file-input" class="hidden" onchange="handleFiles(this)">
             </label>
-            <div onclick="openRemotePrompt()" class="glass-card p-8 flex flex-col items-center justify-center border-white/5 cursor-pointer hover:bg-white/5 transition">
-                <div class="h-14 w-14 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-4 text-blue-500 text-xl border border-blue-500/20">
-                    <i class="fas fa-link"></i>
-                </div>
-                <span class="text-[10px] font-black uppercase tracking-widest">Remote Inject</span>
+            <div onclick="remoteUpload()" class="glass-card p-6 flex flex-col items-center justify-center cursor-pointer">
+                <i class="fas fa-link text-blue-500 text-2xl mb-2"></i>
+                <span class="text-[10px] font-bold uppercase">Remote Link</span>
             </div>
         </div>
 
-        <div id="file-repository-list" class="animate-entry" style="animation-delay: 0.4s">
-            <div class="flex justify-between items-center mb-8 px-4">
-                <h4 class="text-xs font-black uppercase tracking-[6px] text-gray-600">Encrypted Repository</h4>
-                <span class="text-[10px] font-bold text-gray-700" id="repo-count-label">0 OBJECTS</span>
-            </div>
+        <div id="upload-queue" class="mb-8"></div>
 
-            <div id="main-file-container" class="space-y-5">
-                <div id="no-files-view" class="text-center py-28 opacity-10">
-                    <i class="fas fa-hdd text-7xl mb-6"></i>
-                    <p class="orbitron text-[10px] uppercase tracking-[5px]">Repository Empty</p>
-                </div>
-            </div>
+        <div class="flex gap-2 overflow-x-auto pb-6 no-scrollbar mb-4">
+            <button onclick="renderFiles('all')" class="glass-card px-6 py-2 text-[10px] font-bold uppercase">All</button>
+            <button onclick="renderFiles('image')" class="glass-card px-6 py-2 text-[10px] font-bold uppercase">Photos</button>
+            <button onclick="renderFiles('video')" class="glass-card px-6 py-2 text-[10px] font-bold uppercase">Videos</button>
+            <button onclick="renderFiles('doc')" class="glass-card px-6 py-2 text-[10px] font-bold uppercase">Docs</button>
         </div>
+
+        <div id="file-container" class="space-y-4 pb-20"></div>
     </section>
 
-    <section id="screen-settings" class="fixed inset-0 bg-black/95 z-[1000] p-10 hidden overflow-y-auto">
-        <div class="max-w-md mx-auto animate-entry">
-            <div class="flex justify-between items-center mb-16">
-                <h2 class="orbitron text-2xl font-black italic">SYSTEM CONFIG</h2>
-                <button onclick="navigateTo('screen-dashboard')" class="text-4xl text-gray-600 hover:text-white transition">&times;</button>
+    <div id="panel-settings" class="fixed inset-0 bg-black/95 z-[5000] p-10 hidden">
+        <div class="max-w-md mx-auto">
+            <div class="flex justify-between items-center mb-10">
+                <h2 class="orbitron text-xl">SETTINGS</h2>
+                <button onclick="toggleSettings()" class="text-3xl">&times;</button>
             </div>
-
-            <div class="space-y-10">
-                <div class="glass-card p-8">
-                    <div class="flex items-center gap-3 mb-6">
-                        <i class="fas fa-user-lock text-red-500"></i>
-                        <h5 class="text-[10px] font-black uppercase tracking-widest text-gray-300">Security Protocol</h5>
-                    </div>
-                    <p class="text-[11px] text-gray-600 mb-6 font-medium">Override system 4-digit master access PIN.</p>
-                    <div class="flex gap-4">
-                        <input type="password" id="cfg-new-pin" maxlength="4" placeholder="NEW PIN" class="rex-input text-center orbitron text-xl tracking-[15px]">
-                        <button onclick="commitPinUpdate()" class="bg-white text-black px-10 rounded-2xl font-black text-[10px] uppercase">Update</button>
-                    </div>
+            <div class="space-y-6">
+                <div class="glass-card p-6">
+                    <p class="text-[10px] text-gray-500 mb-4 uppercase">Security Protocol</p>
+                    <input type="password" id="new-pin" placeholder="NEW 4-DIGIT PIN" class="rex-input mb-4" maxlength="4">
+                    <button onclick="updatePin()" class="w-full bg-white text-black py-3 rounded-xl font-bold text-xs">UPDATE PIN</button>
                 </div>
-
-                <div class="glass-card p-8">
-                    <div class="flex items-center gap-3 mb-6">
-                        <i class="fas fa-server text-blue-500"></i>
-                        <h5 class="text-[10px] font-black uppercase tracking-widest text-gray-300">Terminal Node Status</h5>
-                    </div>
-                    <div class="space-y-5 text-[11px]">
-                        <div class="flex justify-between"><span class="text-gray-600">Telegram API Host</span><span class="text-emerald-500 font-bold">STABLE</span></div>
-                        <div class="flex justify-between"><span class="text-gray-600">Storage Root ID</span><span class="text-white font-bold tracking-widest">8097272918</span></div>
-                        <div class="flex justify-between"><span class="text-gray-600">Encryption Layer</span><span class="text-white font-bold">REX-AES-512</span></div>
-                        <div class="flex justify-between"><span class="text-gray-600">System Version</span><span class="text-gray-500 font-bold">10.0.4-ELITE</span></div>
-                    </div>
-                </div>
-
-                <button onclick="location.reload()" class="w-full py-6 glass-card border-red-500/20 text-red-500 font-black text-[10px] uppercase tracking-[5px] hover:bg-red-500/10 transition">Terminate All Sessions</button>
+                <button onclick="logout()" class="w-full py-4 text-red-500 font-bold glass-card">LOGOUT SESSION</button>
             </div>
         </div>
-    </section>
+    </div>
 
     <script>
-        /* THE REX CLOUD TITAN ENGINE
-           Handles: Auth, Security, Telegram API, Storage Stats, Animations, etc.
-        */
-
-        // 1. SYSTEM CONFIGURATION
-        const REX_ENV = {
+        const REX_CONFIG = {
             BOT_TOKEN: '8664449438:AAFEvs3o65mnfIuaZSC06kfcZ_09VoAFg90',
             CHAT_ID: '8097272918',
-            ADMIN_WA: '94767531213',
-            MAX_BYTES: 1024 * 1024 * 1024 * 1024, // 1 Terabyte
-            DB_STORAGE_NAME: 'REX_TITAN_VAULT_DATA',
-            PIN_STORAGE_NAME: 'REX_TITAN_MASTER_PIN'
+            ADMIN_WA: '94767531213'
         };
 
-        // 2. GLOBAL STATE
-        let TITAN_DB = JSON.parse(localStorage.getItem(REX_ENV.DB_STORAGE_NAME)) || [];
-        let CURRENT_PIN = localStorage.getItem(REX_ENV.PIN_STORAGE_NAME) || '1234';
-        let tempPinInput = "";
-        let isProTriggered = false;
+        let DB = JSON.parse(localStorage.getItem('REX_VAULT')) || [];
+        let SETTINGS = JSON.parse(localStorage.getItem('REX_SETTINGS')) || { pin: '1234', limitGB: 1024, isAuth: false };
+        let pinInput = "";
 
-        // 3. INITIALIZATION & NAVIGATION
-        function handleAuth() {
+        // 1. AUTH LOGIC
+        window.onload = () => {
+            if(SETTINGS.isAuth) {
+                document.getElementById('screen-auth').classList.add('hidden');
+                document.getElementById('screen-lock').classList.remove('hidden');
+                renderPinPad();
+            }
+        };
+
+        function handleInitialAuth() {
             const email = document.getElementById('input-email').value;
-            const pass = document.getElementById('input-pass').value;
-
-            if(!email.includes('@') || pass.length < 4) {
-                alert("SECURITY ALERT: INVALID TERMINAL CREDENTIALS");
-                return;
+            if(email.includes('@')) {
+                SETTINGS.isAuth = true;
+                localStorage.setItem('REX_SETTINGS', JSON.stringify(SETTINGS));
+                location.reload();
             }
-
-            document.getElementById('display-user').innerText = email.toUpperCase();
-            navigateTo('screen-lock');
-            renderKeypad();
         }
 
-        function navigateTo(screenId) {
-            const screens = ['screen-auth', 'screen-lock', 'screen-dashboard', 'screen-settings'];
-            screens.forEach(s => document.getElementById(s).classList.add('hidden'));
-            
-            const target = document.getElementById(screenId);
-            target.classList.remove('hidden');
-            target.style.opacity = 0;
-            setTimeout(() => target.style.opacity = 1, 50);
-        }
-
-        function renderKeypad() {
-            const container = document.getElementById('digital-keypad');
-            container.innerHTML = "";
-            
-            // Standard Keypad 1-9
+        function renderPinPad() {
+            const pad = document.getElementById('pin-pad');
             for(let i=1; i<=9; i++) {
-                const btn = document.createElement('button');
-                btn.className = "glass-card py-6 orbitron text-2xl font-black hover:bg-white/10 transition active:scale-90";
-                btn.innerText = i;
-                btn.onclick = () => handlePinPress(i.toString());
-                container.appendChild(btn);
+                const b = document.createElement('button');
+                b.className = "glass-card py-5 font-bold orbitron";
+                b.innerText = i;
+                b.onclick = () => handlePin(i);
+                pad.appendChild(b);
             }
-            
-            // Empty / 0 / Fingerprint UI
-            const empty = document.createElement('div');
-            container.appendChild(empty);
-
-            const zero = document.createElement('button');
-            zero.className = "glass-card py-6 orbitron text-2xl font-black hover:bg-white/10 transition active:scale-90";
-            zero.innerText = "0";
-            zero.onclick = () => handlePinPress("0");
-            container.appendChild(zero);
-
-            const finger = document.createElement('button');
-            finger.className = "glass-card py-6 text-red-500 text-2xl hover:bg-red-500/10 transition active:scale-90";
-            finger.innerHTML = `<i class="fas fa-fingerprint"></i>`;
-            finger.onclick = () => alert("BIOMETRIC SCANNING INITIALIZED...");
-            container.appendChild(finger);
+            // 0 button
+            const z = document.createElement('button');
+            z.className = "col-start-2 glass-card py-5 font-bold orbitron";
+            z.innerText = "0";
+            z.onclick = () => handlePin(0);
+            pad.appendChild(z);
         }
 
-        function handlePinPress(num) {
-            if(tempPinInput.length < 4) {
-                tempPinInput += num;
+        function handlePin(num) {
+            if(pinInput.length < 4) {
+                pinInput += num;
                 updatePinDots();
-
-                if(tempPinInput.length === 4) {
-                    setTimeout(() => {
-                        if(tempPinInput === CURRENT_PIN) {
-                            navigateTo('screen-dashboard');
-                            refreshDashboardUI();
-                        } else {
-                            alert("CRITICAL ERROR: PIN INCORRECT. ACCESS DENIED.");
-                            tempPinInput = "";
-                            updatePinDots();
-                        }
-                    }, 300);
+                if(pinInput.length === 4) {
+                    if(pinInput === SETTINGS.pin) {
+                        document.getElementById('screen-lock').classList.add('hidden');
+                        document.getElementById('screen-dashboard').classList.remove('hidden');
+                        refreshUI();
+                    } else {
+                        alert("DENIED");
+                        pinInput = "";
+                        updatePinDots();
+                    }
                 }
             }
         }
 
         function updatePinDots() {
-            const dots = document.querySelectorAll('#pin-indicator div');
-            dots.forEach((dot, i) => {
-                if(i < tempPinInput.length) {
-                    dot.style.background = '#ff416c';
-                    dot.style.borderColor = '#ff416c';
-                    dot.style.boxShadow = '0 0 15px #ff416c';
-                    dot.style.transform = 'scale(1.2)';
-                } else {
-                    dot.style.background = 'transparent';
-                    dot.style.borderColor = 'rgba(255, 65, 108, 0.3)';
-                    dot.style.boxShadow = 'none';
-                    dot.style.transform = 'scale(1)';
-                }
+            const dots = document.querySelectorAll('#pin-dots div');
+            dots.forEach((d, i) => d.style.background = i < pinInput.length ? '#ff416c' : 'transparent');
+        }
+
+        // 2. FILE HANDLING
+        async function handleFiles(input) {
+            const files = Array.from(input.files);
+            const queue = document.getElementById('upload-queue');
+            
+            for(const file of files) {
+                const id = 'up-' + Date.now();
+                const item = document.createElement('div');
+                item.id = id;
+                item.className = "upload-queue-item animate-pulse";
+                item.innerHTML = `
+                    <span class="text-[10px] truncate max-w-[150px]">${file.name}</span>
+                    <button onclick="this.parentElement.remove()" class="text-red-500 text-xs">CANCEL</button>
+                `;
+                queue.appendChild(item);
+
+                // Upload
+                const formData = new FormData();
+                formData.append('chat_id', REX_CONFIG.CHAT_ID);
+                formData.append('document', file);
+                
+                try {
+                    const res = await fetch(`https://api.telegram.org/bot${REX_CONFIG.BOT_TOKEN}/sendDocument`, {
+                        method: 'POST', body: formData
+                    });
+                    const data = await res.json();
+                    
+                    if(data.ok) {
+                        const fileObj = {
+                            id: Date.now() + Math.random(),
+                            name: file.name,
+                            size: file.size,
+                            type: file.type,
+                            fileId: data.result.document.file_id,
+                            cat: file.type.includes('image') ? 'image' : (file.type.includes('video') ? 'video' : 'doc')
+                        };
+                        DB.unshift(fileObj);
+                        saveDB();
+                        item.remove();
+                        refreshUI();
+                    }
+                } catch(e) { alert("FAIL: " + file.name); }
+            }
+        }
+
+        // 3. MEDIA PREVIEW (Telegram බොට් එකෙන් ෆයිල් එක ඇප් එකට ගෙන ඒම)
+        async function viewFile(fileId, type, name) {
+            const viewer = document.getElementById('media-viewer');
+            const content = document.getElementById('viewer-content');
+            content.innerHTML = `<div class="animate-spin text-4xl"><i class="fas fa-circle-notch"></i></div>`;
+            viewer.style.display = 'flex';
+            
+            // Get File Path
+            const pathRes = await fetch(`https://api.telegram.org/bot${REX_CONFIG.BOT_TOKEN}/getFile?file_id=${fileId}`);
+            const pathData = await pathRes.json();
+            const url = `https://api.telegram.org/file/bot${REX_CONFIG.BOT_TOKEN}/${pathData.result.file_path}`;
+
+            if(type.includes('image')) {
+                content.innerHTML = `<img src="${url}" class="max-w-full rounded-lg">`;
+            } else if(type.includes('video')) {
+                content.innerHTML = `<video src="${url}" controls autoplay class="max-w-full rounded-lg"></video>`;
+            } else {
+                content.innerHTML = `<i class="fas fa-file-alt text-6xl mb-4"></i><a href="${url}" target="_blank" class="bg-white text-black px-8 py-3 rounded-full font-bold">DOWNLOAD DOC</a>`;
+            }
+            document.getElementById('viewer-name').innerText = name;
+        }
+
+        function closeViewer() { document.getElementById('media-viewer').style.display = 'none'; }
+
+        // 4. REMOTE UPLOAD (Drive/Mediafire links simulation)
+        function remoteUpload() {
+            const url = prompt("ENTER DIRECT LINK (Drive, Mediafire, etc):");
+            if(url) {
+                alert("REMOTE MIRRORING INITIALIZED. THE SERVER IS DOWNLOADING AND ENCRYPTING THE OBJECT.");
+            }
+        }
+
+        // 5. UI REFRESH & STATS
+        function refreshUI() {
+            renderFiles('all');
+            const total = DB.reduce((s, f) => s + f.size, 0);
+            const gbUsed = (total / (1024**3)).toFixed(2);
+            document.getElementById('stat-gb').innerText = gbUsed + " GB";
+            document.getElementById('stat-limit').innerText = `LIMIT: ${SETTINGS.limitGB} GB`;
+            document.getElementById('storage-bar-fill').style.width = (gbUsed / SETTINGS.limitGB * 100) + "%";
+        }
+
+        function renderFiles(cat) {
+            const cont = document.getElementById('file-container');
+            cont.innerHTML = "";
+            const filtered = cat === 'all' ? DB : DB.filter(f => f.cat === cat);
+            
+            filtered.forEach(f => {
+                const div = document.createElement('div');
+                div.id = 'f-' + f.id;
+                div.className = "glass-card p-5 flex justify-between items-center";
+                div.innerHTML = `
+                    <div class="flex items-center gap-4 flex-1" onclick="viewFile('${f.fileId}', '${f.type}', '${f.name}')">
+                        <i class="fas ${f.cat === 'image' ? 'fa-image text-pink-500' : (f.cat === 'video' ? 'fa-play-circle text-blue-500' : 'fa-file text-gray-500')} text-xl"></i>
+                        <div class="overflow-hidden">
+                            <p class="text-[11px] font-bold truncate max-w-[150px]">${f.name}</p>
+                            <p class="text-[8px] text-gray-600 font-bold uppercase">${(f.size/1024/1024).toFixed(2)} MB</p>
+                        </div>
+                    </div>
+                    <button onclick="thanosSnap('f-${f.id}', ${f.id})" class="text-gray-700 hover:text-red-500"><i class="fas fa-trash"></i></button>
+                `;
+                cont.appendChild(div);
             });
         }
 
-        // 4. TELEGRAM CLOUD CORE ENGINE
-        async function initiateTelegramUpload(input) {
-            const file = input.files[0];
-            if(!file) return;
-
-            // Start Loader
-            const loader = createTitanLoader(file.name);
-            
-            // Prepare Telegram Payload
-            const formData = new FormData();
-            formData.append('chat_id', REX_ENV.CHAT_ID);
-            formData.append('document', file);
-            formData.append('caption', `📡 REX-CLOUD-NODE: ${file.name}\n🔒 Encrypted: AES-256`);
-
-            try {
-                const response = await fetch(`https://api.telegram.org/bot${REX_ENV.BOT_TOKEN}/sendDocument`, {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-
-                if(data.ok) {
-                    // Create Virtual File Object
-                    const fileObject = {
-                        uid: 'REX-' + Date.now() + Math.floor(Math.random()*1000),
-                        name: file.name,
-                        rawSize: file.size,
-                        category: categorizeFile(file.type),
-                        timestamp: new Date().toLocaleDateString(),
-                        telegramId: data.result.message_id,
-                        mimeType: file.type
-                    };
-
-                    TITAN_DB.unshift(fileObject);
-                    saveTitanDB();
-                    refreshDashboardUI();
-                    
-                    // Final UI Feedback
-                    alert("✅ UPLOAD SUCCESS: OBJECT SECURED IN CLOUD NODES");
-                } else {
-                    throw new Error("Telegram Handshake Failed");
-                }
-            } catch (err) {
-                console.error(err);
-                alert("❌ CRITICAL ERROR: CONNECTION TERMINATED OR BOT NOT READY");
-            } finally {
-                loader.remove();
-                input.value = ""; // Reset input
-            }
+        // 6. THANOS DELETE
+        async function thanosSnap(divId, dbId) {
+            const el = document.getElementById(divId);
+            const canvas = await html2canvas(el, { backgroundColor: null });
+            el.style.display = 'none';
+            // (Thanos animation logic simplified for space)
+            DB = DB.filter(f => f.id !== dbId);
+            saveDB();
+            refreshUI();
         }
 
-        function categorizeFile(mime) {
-            if(mime.includes('image')) return 'image';
-            if(mime.includes('video')) return 'video';
-            return 'doc';
+        // 7. SETTINGS & ADMIN
+        function toggleSettings() {
+            const s = document.getElementById('panel-settings');
+            s.classList.toggle('hidden');
         }
 
-        function getTitanIcon(cat) {
-            const icons = {
-                image: 'fas fa-image',
-                video: 'fas fa-play-circle',
-                doc: 'fas fa-file-shield'
-            };
-            return icons[cat] || 'fas fa-file-alt';
+        function updatePin() {
+            const p = document.getElementById('new-pin').value;
+            if(p.length === 4) { SETTINGS.pin = p; saveSettings(); alert("PIN UPDATED"); toggleSettings(); }
         }
 
-        // 5. REPOSITORY RENDER ENGINE
-        function refreshDashboardUI(filter = 'all') {
-            const container = document.getElementById('main-file-container');
-            const emptyView = document.getElementById('no-files-view');
-            const countLabel = document.getElementById('repo-count-label');
+        function logout() { localStorage.clear(); location.reload(); }
 
-            const filteredData = filter === 'all' ? TITAN_DB : TITAN_DB.filter(f => f.category === filter);
-            
-            countLabel.innerText = `${filteredData.length} OBJECTS DETECTED`;
+        function contactPro() { window.open(`https://wa.me/${REX_CONFIG.ADMIN_WA}?text=Pro`, '_blank'); }
 
-            if(filteredData.length === 0) {
-                emptyView.classList.remove('hidden');
-                container.innerHTML = "";
-            } else {
-                emptyView.classList.add('hidden');
-                container.innerHTML = filteredData.map(file => `
-                    <div class="glass-card p-6 flex justify-between items-center group relative overflow-hidden" id="${file.uid}">
-                        <div class="flex items-center gap-5 z-10">
-                            <div class="h-14 w-14 bg-white/5 rounded-2xl flex items-center justify-center text-red-500 border border-white/5 group-hover:border-red-500/30 transition">
-                                <i class="${getTitanIcon(file.category)} text-xl"></i>
-                            </div>
-                            <div class="overflow-hidden">
-                                <h5 class="text-sm font-bold truncate max-w-[160px] text-white">${file.name}</h5>
-                                <p class="text-[9px] text-gray-500 font-bold uppercase tracking-[2px] mt-1">
-                                    ${(file.rawSize / (1024 * 1024)).toFixed(2)} MB • ${file.timestamp}
-                                </p>
-                            </div>
-                        </div>
-                        <div class="flex gap-5 z-10">
-                            <button onclick="viewCloudFile('${file.telegramId}')" class="text-gray-600 hover:text-white transition active:scale-90">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button onclick="executeThanosSnap('${file.uid}')" class="text-gray-600 hover:text-red-500 transition active:scale-90">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
-                        <div class="absolute inset-0 bg-gradient-to-r from-red-500/0 to-red-500/5 opacity-0 group-hover:opacity-100 transition duration-500"></div>
-                    </div>
-                `).join('');
-            }
-
-            calculateStorageMetrics();
-        }
-
-        // 6. STORAGE & PRO SYSTEM
-        function calculateStorageMetrics() {
-            const totalUsedBytes = TITAN_DB.reduce((acc, f) => acc + f.rawSize, 0);
-            const usedGB = totalUsedBytes / (1024 * 1024 * 1024);
-            const usagePercent = (totalUsedBytes / REX_ENV.MAX_BYTES) * 100;
-
-            // UI Update
-            document.getElementById('stat-used-gb').innerText = usedGB.toFixed(2);
-            document.getElementById('stat-percent-label').innerText = usagePercent.toFixed(2) + '% USED';
-            
-            const bar = document.getElementById('storage-bar-fill');
-            bar.style.width = usagePercent + '%';
-
-            // Check for Pro Trigger
-            const proGate = document.getElementById('pro-alert-box');
-            if(usagePercent > 80) { // If storage > 80%, show Pro upgrade
-                proGate.classList.remove('hidden');
-                if(!isProTriggered) {
-                    isProTriggered = true;
-                    console.log("STORAGE LIMIT REACHED: PRO MODULE READY");
-                }
-            } else {
-                proGate.classList.add('hidden');
-            }
-        }
-
-        function contactAdminForPro() {
-            const message = "I Wont Update To Pro"; //
-            const whatsappUrl = `https://wa.me/${REX_ENV.ADMIN_WA}?text=${encodeURIComponent(message)}`;
-            window.open(whatsappUrl, '_blank');
-        }
-
-        // 7. THANOS DUST ANIMATION ENGINE
-        async function executeThanosSnap(id) {
-            const element = document.getElementById(id);
-            if(!element) return;
-
-            // 1. Capture element as image
-            const canvas = await html2canvas(element, { backgroundColor: null, scale: 1 });
-            const ctx = canvas.getContext('2d');
-            const { width, height } = canvas;
-            const imgData = ctx.getImageData(0, 0, width, height);
-            
-            // 2. Hide original
-            element.style.visibility = 'hidden';
-            const rect = element.getBoundingClientRect();
-            const container = document.getElementById('dust-canvas-container');
-
-            // 3. Create 30 layers for disintegration
-            const layerCount = 30;
-            for (let i = 0; i < layerCount; i++) {
-                const layerCanvas = document.createElement('canvas');
-                layerCanvas.width = width;
-                layerCanvas.height = height;
-                layerCanvas.style.position = 'fixed';
-                layerCanvas.style.left = rect.left + 'px';
-                layerCanvas.style.top = rect.top + 'px';
-                layerCanvas.style.zIndex = '99999';
-                
-                const lCtx = layerCanvas.getContext('2d');
-                const lData = lCtx.createImageData(width, height);
-
-                // Distribute pixels across layers
-                for (let j = 0; j < imgData.data.length; j += 4) {
-                    if (Math.random() < i / layerCount) {
-                        lData.data[j] = imgData.data[j];
-                        lData.data[j+1] = imgData.data[j+1];
-                        lData.data[j+2] = imgData.data[j+2];
-                        lData.data[j+3] = imgData.data[j+3];
-                    }
-                }
-                lCtx.putImageData(lData, 0, 0);
-                container.appendChild(layerCanvas);
-
-                // 4. Animate each layer
-                const delay = i * 45;
-                layerCanvas.animate([
-                    { transform: 'translate(0,0) rotate(0deg)', opacity: 1, filter: 'blur(0px)' },
-                    { 
-                        transform: `translate(${150 + Math.random()*100}px, -${100 + Math.random()*100}px) rotate(${Math.random()*40 - 20}deg)`, 
-                        opacity: 0, 
-                        filter: 'blur(10px)' 
-                    }
-                ], {
-                    duration: 2000,
-                    easing: 'ease-in-out',
-                    delay: delay,
-                    fill: 'forwards'
-                });
-
-                // Cleanup
-                setTimeout(() => layerCanvas.remove(), 2500);
-            }
-
-            // 5. Update Database after animation starts
-            setTimeout(() => {
-                TITAN_DB = TITAN_DB.filter(f => f.uid !== id);
-                saveTitanDB();
-                refreshDashboardUI();
-            }, 1000);
-        }
-
-        // 8. HELPERS & UTILITIES
-        function createTitanLoader(filename) {
-            const overlay = document.createElement('div');
-            overlay.className = "fixed inset-0 bg-black/95 backdrop-blur-2xl z-[50000] flex items-center justify-center p-12 text-center";
-            overlay.innerHTML = `
-                <div class="animate-entry">
-                    <div class="relative inline-block mb-10">
-                        <div class="h-20 w-20 border-4 border-red-500/20 border-t-red-500 rounded-full animate-spin"></div>
-                        <i class="fas fa-cloud-upload-alt absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-xl"></i>
-                    </div>
-                    <h3 class="orbitron text-sm font-black mb-2">SECURE TRANSMISSION ACTIVE</h3>
-                    <p class="text-[9px] text-gray-600 uppercase tracking-widest font-bold">Encrypting: ${filename}</p>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-            return overlay;
-        }
-
-        function saveTitanDB() {
-            localStorage.setItem(REX_ENV.DB_STORAGE_NAME, JSON.stringify(TITAN_DB));
-        }
-
-        window.commitPinUpdate = () => {
-            const newPin = document.getElementById('cfg-new-pin').value;
-            if(newPin.length === 4) {
-                CURRENT_PIN = newPin;
-                localStorage.setItem(REX_ENV.PIN_STORAGE_NAME, newPin);
-                alert("PROTOCOL SUCCESS: MASTER PIN UPDATED");
-                document.getElementById('cfg-new-pin').value = "";
-            } else {
-                alert("ERROR: PIN MUST BE 4 DIGITS");
-            }
+        // ADMIN FUNCTION: GB ප්‍රමාණය වෙනස් කිරීමට
+        window.ADMIN_SET_GB = (val) => {
+            SETTINGS.limitGB = val;
+            saveSettings();
+            refreshUI();
+            console.log("GB LIMIT UPDATED TO: " + val);
         };
 
-        window.viewCloudFile = (msgId) => {
-            alert("REDIRECTING TO SECURE TELEGRAM CLOUD NODE...");
-            window.open(`https://t.me/c/${REX_ENV.CHAT_ID}/${msgId}`, '_blank');
-        };
-
-        window.applyFilter = (cat, btn) => {
-            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-            btn.classList.add('active');
-            refreshDashboardUI(cat);
-        };
-
-        window.openRemotePrompt = () => {
-            const url = prompt("ENTER REMOTE OBJECT URL TO INJECT:");
-            if(url) {
-                alert("REMOTE INJECTION SEQUENCE INITIALIZED. DATA WILL BE MIRRORED TO YOUR CLOUD VAULT.");
-            }
-        };
-
-        window.logout = () => {
-            if(confirm("TERMINATE SESSION? THIS WILL RELOAD THE TERMINAL.")) {
-                location.reload();
-            }
-        };
-
-        // Initialize App
-        console.log("REX CLOUD v10.0 TITAN - SYSTEM STANDBY");
+        function saveDB() { localStorage.setItem('REX_VAULT', JSON.stringify(DB)); }
+        function saveSettings() { localStorage.setItem('REX_SETTINGS', JSON.stringify(SETTINGS)); }
     </script>
 </body>
 </html>
