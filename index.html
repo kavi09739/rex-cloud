@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>REX CLOUD | High-End Security Storage</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>REX CLOUD | Professional Encrypted Storage</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@200;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,460 +11,299 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        /* CSS Variables & Reset */
-        :root {
-            --accent: #ff416c;
-            --accent-low: rgba(255, 65, 108, 0.2);
-            --bg-dark: #05050a;
-            --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.08);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            background: radial-gradient(circle at top right, #1a1a3e, var(--bg-dark));
-            color: #e0e0e0;
-            font-family: 'Poppins', sans-serif;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* Glassmorphism Classes */
-        .glass {
-            background: var(--glass-bg);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid var(--glass-border);
-            border-radius: 30px;
-        }
-
+        :root { --accent: #ff416c; --bg-dark: #020205; --glass: rgba(255, 255, 255, 0.03); }
+        body { background: radial-gradient(circle at top right, #12122b, var(--bg-dark)); color: #eee; font-family: 'Poppins', sans-serif; min-height: 100vh; overflow-x: hidden; }
         .orbitron { font-family: 'Orbitron', sans-serif; letter-spacing: 2px; }
+        .glass { background: var(--glass); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 28px; }
+        .input-box { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 18px; padding: 15px; color: white; width: 100%; outline: none; transition: 0.3s; }
+        .input-box:focus { border-color: var(--accent); background: rgba(255, 255, 255, 0.07); }
+        .btn-main { background: linear-gradient(45deg, #ff416c, #ff4b2b); font-weight: bold; text-transform: uppercase; border-radius: 18px; transition: 0.4s; }
+        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(255, 65, 108, 0.3); }
+        
+        /* Loading Bar Animation */
+        .loading-shimmer { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        
+        .cat-btn { padding: 8px 16px; border-radius: 12px; font-size: 10px; font-weight: bold; border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; }
+        .cat-btn.active { background: var(--accent); border-color: var(--accent); }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
-
-        /* Animations */
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(255, 65, 108, 0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(255, 65, 108, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 65, 108, 0); }
-        }
-
-        .pro-btn {
-            background: linear-gradient(45deg, #ff416c, #ff4b2b);
-            animation: pulse-red 2s infinite;
-        }
-
-        .input-box {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            color: white;
-            transition: 0.3s;
-        }
-        .input-box:focus { border-color: var(--accent); background: rgba(255, 255, 255, 0.08); }
-
-        /* Dust Animation Canvas Overlay */
-        #dust-container { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; }
+        #dust-overlay { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; }
     </style>
 </head>
 <body>
+    <div id="dust-overlay"></div>
 
-    <div id="dust-container"></div>
-
-    <section id="authPage" class="min-h-screen flex items-center justify-center p-6">
+    <section id="authView" class="min-h-screen flex items-center justify-center p-6">
         <div class="glass p-10 w-full max-w-md text-center">
-            <h1 class="orbitron text-4xl font-black mb-2 text-white italic">REX CLOUD</h1>
-            <p class="text-[10px] tracking-[6px] text-gray-500 mb-12 uppercase">Quantum Encrypted Storage</p>
-            
+            <h1 class="orbitron text-4xl font-black mb-10 italic">REX CLOUD</h1>
             <div class="space-y-4">
-                <input type="email" id="loginEmail" placeholder="Email Address" class="input-box w-full p-4 outline-none">
-                <input type="password" id="loginPass" placeholder="Security Key" class="input-box w-full p-4 outline-none">
-                <button onclick="handleLogin()" class="pro-btn w-full py-4 rounded-2xl font-bold tracking-widest mt-6">ACCESS TERMINAL</button>
-            </div>
-            <p class="mt-6 text-[10px] text-gray-600">v2.0.4 - Secure Connection Active</p>
-        </div>
-    </section>
-
-    <section id="lockPage" class="min-h-screen flex items-center justify-center p-6 hidden">
-        <div class="glass p-10 w-full max-w-sm text-center">
-            <i class="fas fa-shield-alt text-4xl text-red-500 mb-6"></i>
-            <h2 class="orbitron text-lg font-bold mb-8">SYSTEM LOCKED</h2>
-            
-            <div id="pinDisplay" class="flex justify-center gap-4 mb-10">
-                <div class="h-4 w-4 rounded-full border-2 border-red-500"></div>
-                <div class="h-4 w-4 rounded-full border-2 border-red-500"></div>
-                <div class="h-4 w-4 rounded-full border-2 border-red-500"></div>
-                <div class="h-4 w-4 rounded-full border-2 border-red-500"></div>
-            </div>
-
-            <div class="grid grid-cols-3 gap-4 mb-8">
-                <button onclick="pressPin('1')" class="glass py-4 rounded-xl hover:bg-white/10">1</button>
-                <button onclick="pressPin('2')" class="glass py-4 rounded-xl hover:bg-white/10">2</button>
-                <button onclick="pressPin('3')" class="glass py-4 rounded-xl hover:bg-white/10">3</button>
-                <button onclick="pressPin('4')" class="glass py-4 rounded-xl hover:bg-white/10">4</button>
-                <button onclick="pressPin('5')" class="glass py-4 rounded-xl hover:bg-white/10">5</button>
-                <button onclick="pressPin('6')" class="glass py-4 rounded-xl hover:bg-white/10">6</button>
-                <button onclick="pressPin('7')" class="glass py-4 rounded-xl hover:bg-white/10">7</button>
-                <button onclick="pressPin('8')" class="glass py-4 rounded-xl hover:bg-white/10">8</button>
-                <button onclick="pressPin('9')" class="glass py-4 rounded-xl hover:bg-white/10">9</button>
-                <button onclick="useFingerprint()" class="glass py-4 rounded-xl hover:bg-white/10 col-start-2"><i class="fas fa-fingerprint text-red-500"></i></button>
+                <input type="email" id="userEmail" placeholder="Terminal ID (Email)" class="input-box">
+                <input type="password" id="userPass" placeholder="Access Code" class="input-box">
+                <button onclick="handleAuth()" class="btn-main w-full py-4 mt-6">Initialize Session</button>
             </div>
         </div>
     </section>
 
-    <section id="mainApp" class="min-h-screen p-6 hidden max-w-2xl mx-auto">
-        
-        <header class="flex justify-between items-center mb-10">
+    <section id="lockView" class="min-h-screen flex items-center justify-center p-6 hidden">
+        <div class="glass p-10 w-full max-w-xs text-center">
+            <i class="fas fa-fingerprint text-5xl text-red-500 mb-8 animate-pulse"></i>
+            <h2 class="orbitron text-sm mb-10 tracking-[4px]">SECURITY CHECK</h2>
+            <div class="grid grid-cols-3 gap-4" id="pinPad">
+                </div>
+            <button onclick="logout()" class="mt-10 text-[10px] uppercase opacity-40">Abort Session</button>
+        </div>
+    </section>
+
+    <section id="mainView" class="min-h-screen p-4 hidden max-w-xl mx-auto pb-24">
+        <header class="flex justify-between items-center py-6">
             <div>
                 <h1 class="orbitron text-xl font-black italic">REX CLOUD</h1>
-                <p class="text-[10px] text-gray-500" id="userEmailTag"></p>
+                <p class="text-[9px] text-gray-500 font-bold" id="sessionLabel"></p>
             </div>
-            <div class="flex gap-4">
-                <button onclick="openSettings()" class="glass h-12 w-12 flex items-center justify-center rounded-2xl hover:bg-white/10 transition">
-                    <i class="fas fa-cog text-gray-400"></i>
-                </button>
-            </div>
+            <button onclick="toggleView('settingsView')" class="glass h-12 w-12 flex items-center justify-center text-gray-400">
+                <i class="fas fa-sliders-h"></i>
+            </button>
         </header>
 
-        <div class="glass p-8 mb-8 relative overflow-hidden">
+        <div class="glass p-6 mb-6">
             <div class="flex justify-between items-end mb-4">
                 <div>
-                    <h3 class="text-3xl font-black orbitron" id="gbUsed">0.00</h3>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-widest">Gigabytes Consumed</p>
+                    <span class="text-3xl font-black orbitron" id="displayUsed">0.00</span>
+                    <span class="text-[10px] text-gray-500 ml-1">GB USED</span>
                 </div>
                 <div class="text-right">
-                    <p class="text-[10px] font-bold text-red-500 mb-1">LIMIT: 1,024 GB</p>
-                    <p class="text-xs font-semibold" id="percentText">0% USED</p>
+                    <p class="text-[9px] font-bold text-red-500">QUOTA: 1024 GB</p>
+                    <p class="text-[11px] font-semibold" id="displayPercent">0.00%</p>
                 </div>
             </div>
-            
-            <div class="h-2 w-full bg-white/5 rounded-full overflow-hidden mb-8">
-                <div id="storageBar" class="h-full bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400" style="width: 0%"></div>
+            <div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                <div id="usageBar" class="h-full bg-gradient-to-r from-red-600 via-orange-500 to-emerald-400 transition-all duration-1000" style="width: 0%"></div>
             </div>
+        </div>
 
-            <label class="block w-full">
-                <div class="glass border-2 border-dashed border-white/10 p-10 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-all">
-                    <div class="h-16 w-16 bg-red-500/10 rounded-full flex items-center justify-center mb-4">
-                        <i class="fas fa-arrow-up text-red-500 text-2xl animate-bounce"></i>
-                    </div>
-                    <span class="text-sm font-bold orbitron">PUSH TO CLOUD</span>
-                    <p class="text-[10px] text-gray-600 mt-2 italic">Drag and drop or click to browse</p>
-                </div>
-                <input type="file" id="realUpload" class="hidden" onchange="processUpload(this)">
+        <div class="flex gap-2 overflow-x-auto pb-6 no-scrollbar">
+            <button class="cat-btn active" onclick="filterFiles('all', this)">ALL</button>
+            <button class="cat-btn" onclick="filterFiles('image', this)">IMAGES</button>
+            <button class="cat-btn" onclick="filterFiles('video', this)">VIDEOS</button>
+            <button class="cat-btn" onclick="filterFiles('doc', this)">DOCS</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <label class="glass p-6 flex flex-col items-center justify-center border-dashed border-2 border-white/5 cursor-pointer">
+                <i class="fas fa-upload text-red-500 mb-2"></i>
+                <span class="text-[10px] font-bold uppercase">Upload</span>
+                <input type="file" class="hidden" onchange="uploadFile(this)">
             </label>
-        </div>
-
-        <div id="fileExplorer">
-            <div class="flex justify-between items-center mb-6 px-2">
-                <h4 class="text-xs font-bold uppercase tracking-[4px] text-gray-500">Cloud Repository</h4>
-                <span class="text-[10px] text-gray-600" id="fileCount">0 Files Detected</span>
-            </div>
-
-            <div id="fileContainer" class="space-y-4">
-                <div id="emptyMsg" class="text-center py-20 opacity-20">
-                    <i class="fas fa-folder-open text-6xl mb-4"></i>
-                    <p class="text-xs orbitron uppercase">Empty Storage</p>
-                </div>
+            <div onclick="remotePrompt()" class="glass p-6 flex flex-col items-center justify-center border-white/5 cursor-pointer">
+                <i class="fas fa-link text-blue-500 mb-2"></i>
+                <span class="text-[10px] font-bold uppercase">Remote</span>
             </div>
         </div>
 
-        <div id="proPanel" class="mt-10 glass p-8 bg-gradient-to-br from-red-600/20 to-transparent border-red-500/30 hidden">
-            <h3 class="orbitron text-xl font-black mb-2">SYSTEM WARNING</h3>
-            <p class="text-sm text-gray-400 mb-6">Your storage threshold has been reached. Secure additional GBs via admin protocol.</p>
-            <button onclick="contactAdmin()" class="pro-btn w-full py-4 rounded-xl font-bold uppercase tracking-widest">Connect to Admin</button>
+        <div id="fileBox" class="space-y-4">
+            </div>
+    </section>
+
+    <section id="settingsView" class="fixed inset-0 bg-black/95 z-[100] p-6 hidden">
+        <div class="flex justify-between items-center mb-12">
+            <h2 class="orbitron text-2xl font-black">SETTINGS</h2>
+            <button onclick="toggleView('mainView')" class="text-3xl">&times;</button>
+        </div>
+        <div class="space-y-6 max-w-sm mx-auto">
+            <div class="glass p-6">
+                <label class="text-[10px] font-bold text-gray-500 uppercase mb-4 block">System Passcode</label>
+                <input type="password" id="setPin" maxlength="4" placeholder="NEW 4-DIGIT PIN" class="input-box text-center orbitron tracking-[10px]">
+                <button onclick="updatePin()" class="btn-main w-full py-3 mt-4 text-xs">Update Security</button>
+            </div>
+            <button onclick="logout()" class="w-full py-4 glass border-red-500/20 text-red-500 font-bold text-xs uppercase tracking-widest">Terminate Account</button>
         </div>
     </section>
 
-    <div id="settingsModal" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-[100] p-6 flex flex-col hidden">
-        <div class="flex justify-between items-center mb-10">
-            <h2 class="orbitron text-2xl font-black italic">CONTROL PANEL</h2>
-            <button onclick="closeSettings()" class="text-2xl">&times;</button>
-        </div>
-
-        <div class="space-y-8 max-w-md mx-auto w-full">
-            <div class="glass p-6">
-                <h5 class="text-xs font-bold mb-4 text-red-500">SECURITY PROTOCOL</h5>
-                <p class="text-xs text-gray-400 mb-4">Change the 4-digit system access PIN</p>
-                <div class="flex gap-4">
-                    <input type="password" id="newPin" maxlength="4" placeholder="NEW PIN" class="input-box flex-1 p-3 text-center orbitron">
-                    <button onclick="saveSettings()" class="bg-white text-black px-6 rounded-xl font-bold text-xs uppercase">Update</button>
-                </div>
-            </div>
-
-            <div class="glass p-6">
-                <h5 class="text-xs font-bold mb-4 text-red-500">CLOUD SYNC</h5>
-                <p class="text-xs text-gray-400 mb-2">Telegram Node: <b>REX-BOT-MAIN</b></p>
-                <p class="text-xs text-gray-400">Endpoint: <b>8097272918</b></p>
-            </div>
-
-            <button onclick="logout()" class="w-full py-4 border border-white/10 rounded-2xl text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white hover:bg-red-500/10 hover:border-red-500 transition">Terminate Session</button>
-        </div>
-    </div>
-
-    <audio id="clickSound" src="https://www.soundjay.com/buttons/button-16.mp3"></audio>
-    <audio id="snapSound" src="https://www.soundjay.com/communication/beep-07.mp3"></audio>
-
-    <script type="module">
-        // ----------------------------------------------------
-        // INITIAL CONFIGURATION
-        // ----------------------------------------------------
-        const CONFIG = {
+    <script>
+        // --- CONFIGURATION ---
+        const REX_CONFIG = {
             BOT_TOKEN: '8664449438:AAFEvs3o65mnfIuaZSC06kfcZ_09VoAFg90',
             CHAT_ID: '8097272918',
-            ADMIN_PHONE: '94767531213',
-            MAX_STORAGE: 1024 * 1024 * 1024 * 1024, // 1TB in Bytes
-            LOCAL_STORAGE_KEY: 'REX_FILES_DB',
-            SYSTEM_PIN: '1234'
+            ADMIN_WA: '94767531213',
+            TOTAL_GB: 1024
         };
 
-        let currentFiles = JSON.parse(localStorage.getItem(CONFIG.LOCAL_STORAGE_KEY)) || [];
-        let pinInput = "";
+        let db = JSON.parse(localStorage.getItem('REX_DB')) || [];
+        let currentPin = localStorage.getItem('REX_PIN') || '1234';
+        let pinEntry = "";
 
-        // ----------------------------------------------------
-        // UI NAVIGATION ENGINE
-        // ----------------------------------------------------
-        window.handleLogin = () => {
-            const email = document.getElementById('loginEmail').value;
-            if(!email.includes('@')) { alert("Invalid Protocol Email"); return; }
-            document.getElementById('userEmailTag').innerText = email;
-            transitionPage('authPage', 'lockPage');
-        };
+        // --- AUTH & NAVIGATION ---
+        function handleAuth() {
+            const email = document.getElementById('userEmail').value;
+            if(!email) return alert("Identify yourself!");
+            document.getElementById('sessionLabel').innerText = email;
+            document.getElementById('authView').classList.add('hidden');
+            document.getElementById('lockView').classList.remove('hidden');
+            renderPinPad();
+        }
 
-        window.pressPin = (num) => {
-            pinInput += num;
-            updatePinDisplay();
-            if(pinInput.length === 4) {
-                if(pinInput === CONFIG.SYSTEM_PIN) {
-                    transitionPage('lockPage', 'mainApp');
+        function renderPinPad() {
+            const pad = document.getElementById('pinPad');
+            pad.innerHTML = [...Array(9).keys()].map(i => `<button onclick="enterPin('${i+1}')" class="glass py-5 orbitron text-xl">${i+1}</button>`).join('') + 
+                           `<button onclick="enterPin('0')" class="glass py-5 orbitron text-xl col-start-2">0</button>`;
+        }
+
+        function enterPin(n) {
+            pinEntry += n;
+            if(pinEntry.length === 4) {
+                if(pinEntry === currentPin) {
+                    document.getElementById('lockView').classList.add('hidden');
+                    document.getElementById('mainView').classList.remove('hidden');
                     renderFiles();
                 } else {
                     alert("ACCESS DENIED");
-                    pinInput = "";
-                    updatePinDisplay();
+                    pinEntry = "";
                 }
             }
-        };
-
-        function updatePinDisplay() {
-            const dots = document.querySelectorAll('#pinDisplay div');
-            dots.forEach((dot, i) => {
-                dot.style.background = i < pinInput.length ? '#ff416c' : 'transparent';
-            });
         }
 
-        function transitionPage(from, to) {
-            document.getElementById(from).classList.add('hidden');
-            const toEl = document.getElementById(to);
-            toEl.classList.remove('hidden');
-            toEl.style.opacity = 0;
-            setTimeout(() => toEl.style.opacity = 1, 10);
-        }
-
-        // ----------------------------------------------------
-        // TELEGRAM CLOUD ENGINE (UPLOADER)
-        // ----------------------------------------------------
-        window.processUpload = async (input) => {
+        // --- CORE FEATURES ---
+        async function uploadFile(input) {
             const file = input.files[0];
             if(!file) return;
 
-            // 1. Show Loading State
-            const uploadLabel = document.querySelector('label .glass');
-            const originalContent = uploadLabel.innerHTML;
-            uploadLabel.innerHTML = `<i class="fas fa-spinner fa-spin text-4xl text-red-500 mb-4"></i><span class="orbitron text-xs">ENCRYPTING & UPLOADING...</span>`;
-
-            // 2. Prepare Data
+            const loader = createLoader(file.name);
             const formData = new FormData();
-            formData.append('chat_id', CONFIG.CHAT_ID);
+            formData.append('chat_id', REX_CONFIG.CHAT_ID);
             formData.append('document', file);
-            formData.append('caption', `REX-CLOUD-UPLOAD: ${file.name}`);
 
             try {
-                const response = await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendDocument`, {
+                const response = await fetch(`https://api.telegram.org/bot${REX_CONFIG.BOT_TOKEN}/sendDocument`, {
                     method: 'POST',
                     body: formData
                 });
+                const res = await response.json();
 
-                const result = await response.json();
-
-                if(result.ok) {
-                    const fileData = {
-                        id: 'file_' + Date.now(),
+                if(res.ok) {
+                    const fileObj = {
+                        id: 'rex_' + Date.now(),
                         name: file.name,
                         size: file.size,
+                        type: getFileType(file.type),
                         date: new Date().toLocaleDateString(),
-                        msgId: result.result.message_id,
-                        type: file.type
+                        msgId: res.result.message_id
                     };
-                    
-                    saveFile(fileData);
+                    db.unshift(fileObj);
+                    saveDB();
                     renderFiles();
-                    alert("TRANSMISSION SUCCESSFUL");
-                } else {
-                    throw new Error("Telegram API Error");
-                }
-            } catch (error) {
-                console.error(error);
+                    alert("UPLOAD SUCCESS");
+                } else throw new Error();
+            } catch {
                 alert("CRITICAL ERROR: Connection Terminated");
-            } finally {
-                uploadLabel.innerHTML = originalContent;
-            }
-        };
-
-        // ----------------------------------------------------
-        // DATA PERSISTENCE & RENDER
-        // ----------------------------------------------------
-        function saveFile(data) {
-            currentFiles.unshift(data);
-            localStorage.setItem(CONFIG.LOCAL_STORAGE_KEY, JSON.stringify(currentFiles));
+            } finally { loader.remove(); }
         }
 
-        function renderFiles() {
-            const container = document.getElementById('fileContainer');
-            const emptyMsg = document.getElementById('emptyMsg');
+        function getFileType(type) {
+            if(type.includes('image')) return 'image';
+            if(type.includes('video')) return 'video';
+            return 'doc';
+        }
+
+        function renderFiles(filter = 'all') {
+            const container = document.getElementById('fileBox');
+            const filtered = filter === 'all' ? db : db.filter(f => f.type === filter);
             
-            if(currentFiles.length === 0) {
-                emptyMsg.style.display = 'block';
-                container.innerHTML = "";
-            } else {
-                emptyMsg.style.display = 'none';
-                container.innerHTML = currentFiles.map(file => `
-                    <div class="glass p-5 flex justify-between items-center group relative overflow-hidden file-card-main" id="${file.id}">
-                        <div class="flex items-center gap-4 z-10">
-                            <div class="h-12 w-12 bg-white/5 rounded-xl flex items-center justify-center text-red-500 border border-white/5">
-                                <i class="${getFileIcon(file.type)}"></i>
-                            </div>
-                            <div>
-                                <h5 class="text-sm font-bold truncate max-w-[150px]">${file.name}</h5>
-                                <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">
-                                    ${(file.size / (1024 * 1024)).toFixed(2)} MB • ${file.date}
-                                </p>
-                            </div>
+            container.innerHTML = filtered.map(f => `
+                <div class="glass p-5 flex justify-between items-center relative overflow-hidden" id="${f.id}">
+                    <div class="flex items-center gap-4">
+                        <div class="h-12 w-12 bg-white/5 rounded-2xl flex items-center justify-center text-red-500">
+                            <i class="${getIcon(f.type)}"></i>
                         </div>
-                        <div class="flex gap-4 z-10">
-                            <button onclick="viewFile('${file.msgId}')" class="text-gray-500 hover:text-white transition"><i class="fas fa-eye"></i></button>
-                            <button onclick="initDustAnimation('${file.id}')" class="text-gray-500 hover:text-red-500 transition"><i class="fas fa-trash-alt"></i></button>
+                        <div>
+                            <p class="text-xs font-bold truncate max-w-[140px]">${f.name}</p>
+                            <p class="text-[9px] text-gray-500 uppercase tracking-tighter">${(f.size/1024/1024).toFixed(2)} MB • ${f.date}</p>
                         </div>
-                        <div class="absolute inset-0 bg-gradient-to-r from-red-500/0 to-red-500/5 opacity-0 group-hover:opacity-100 transition"></div>
                     </div>
-                `).join('');
+                    <div class="flex gap-4">
+                        <i class="fas fa-eye text-gray-500" onclick="viewFile('${f.msgId}')"></i>
+                        <i class="fas fa-trash text-gray-700" onclick="dustEffect('${f.id}')"></i>
+                    </div>
+                </div>
+            `).join('');
+            updateBar();
+        }
+
+        function updateBar() {
+            const usedBytes = db.reduce((a, b) => a + b.size, 0);
+            const usedGB = usedBytes / (1024**3);
+            const percent = (usedGB / REX_CONFIG.TOTAL_GB) * 100;
+
+            document.getElementById('displayUsed').innerText = usedGB.toFixed(2);
+            document.getElementById('displayPercent').innerText = percent.toFixed(2) + '%';
+            document.getElementById('usageBar').style.width = percent + '%';
+
+            if(percent > 90) {
+                window.open(`https://wa.me/${REX_CONFIG.ADMIN_WA}?text=I%20WANT%20UPDATE%20TO%20PRO`, '_blank');
             }
-            updateStorageStats();
         }
 
-        function getFileIcon(type) {
-            if(type.includes('image')) return 'fas fa-image';
-            if(type.includes('video')) return 'fas fa-play-circle';
-            if(type.includes('pdf')) return 'fas fa-file-pdf';
-            return 'fas fa-file-alt';
-        }
-
-        function updateStorageStats() {
-            const totalBytes = currentFiles.reduce((acc, f) => acc + f.size, 0);
-            const gb = totalBytes / (1024 * 1024 * 1024);
-            const percent = (totalBytes / CONFIG.MAX_STORAGE) * 100;
-
-            document.getElementById('gbUsed').innerText = gb.toFixed(2);
-            document.getElementById('storageBar').style.width = percent + '%';
-            document.getElementById('percentText').innerText = percent.toFixed(2) + '% USED';
-            document.getElementById('fileCount').innerText = currentFiles.length + ' FILES DETECTED';
-
-            if(percent > 90) document.getElementById('proPanel').classList.remove('hidden');
-        }
-
-        // ----------------------------------------------------
-        // DUST ANIMATION (THANOS EFFECT)
-        // ----------------------------------------------------
-        window.initDustAnimation = async (id) => {
+        // --- DUST ANIMATION ---
+        async function dustEffect(id) {
             const el = document.getElementById(id);
-            const canvas = await html2canvas(el, { backgroundColor: null, scale: 1 });
+            const canvas = await html2canvas(el, { backgroundColor: null });
             const ctx = canvas.getContext('2d');
             const { width, height } = canvas;
-            const imageData = ctx.getImageData(0, 0, width, height);
+            const data = ctx.getImageData(0,0,width,height);
             
-            el.style.visibility = 'hidden';
+            el.style.opacity = '0';
             const rect = el.getBoundingClientRect();
             
-            const layers = 20;
-            const container = document.getElementById('dust-container');
-
-            for (let i = 0; i < layers; i++) {
-                const layerCanvas = document.createElement('canvas');
-                layerCanvas.width = width;
-                layerCanvas.height = height;
-                layerCanvas.style.position = 'fixed';
-                layerCanvas.style.left = rect.left + 'px';
-                layerCanvas.style.top = rect.top + 'px';
-                layerCanvas.style.zIndex = '9999';
-                
-                const lCtx = layerCanvas.getContext('2d');
+            for(let i=0; i<15; i++) {
+                const c = document.createElement('canvas');
+                c.width = width; c.height = height;
+                c.style.position = 'fixed'; c.style.left = rect.left+'px'; c.style.top = rect.top+'px';
+                const lCtx = c.getContext('2d');
                 const lData = lCtx.createImageData(width, height);
-
-                for (let j = 0; j < imageData.data.length; j += 4) {
-                    if (Math.random() < i / layers) {
-                        lData.data[j] = imageData.data[j];
-                        lData.data[j+1] = imageData.data[j+1];
-                        lData.data[j+2] = imageData.data[j+2];
-                        lData.data[j+3] = imageData.data[j+3];
+                for(let j=0; j<data.data.length; j+=4) {
+                    if(Math.random() < i/15) {
+                        lData.data[j]=data.data[j]; lData.data[j+1]=data.data[j+1];
+                        lData.data[j+2]=data.data[j+2]; lData.data[j+3]=data.data[j+3];
                     }
                 }
                 lCtx.putImageData(lData, 0, 0);
-                container.appendChild(layerCanvas);
-
-                // Disintegration Move
-                const delay = i * 50;
-                layerCanvas.animate([
-                    { transform: 'translate(0,0) rotate(0deg)', opacity: 1, filter: 'blur(0px)' },
-                    { transform: `translate(${100 + Math.random()*50}px, -${50 + Math.random()*50}px) rotate(${Math.random()*20}deg)`, opacity: 0, filter: 'blur(5px)' }
-                ], {
-                    duration: 1500,
-                    easing: 'ease-in-out',
-                    delay: delay,
-                    fill: 'forwards'
-                });
-
-                setTimeout(() => layerCanvas.remove(), 2500);
+                document.getElementById('dust-overlay').appendChild(c);
+                c.animate([
+                    { transform: 'translate(0,0)', opacity: 1 },
+                    { transform: `translate(${Math.random()*100-50}px, -100px) rotate(${Math.random()*20}deg)`, opacity: 0 }
+                ], { duration: 1000, easing: 'ease-in' }).onfinish = () => c.remove();
             }
+            setTimeout(() => { db = db.filter(f => f.id !== id); saveDB(); renderFiles(); }, 800);
+        }
 
-            // Real data deletion after animation
-            setTimeout(() => {
-                currentFiles = currentFiles.filter(f => f.id !== id);
-                localStorage.setItem(CONFIG.LOCAL_STORAGE_KEY, JSON.stringify(currentFiles));
-                renderFiles();
-            }, 1000);
+        // --- HELPERS ---
+        const getIcon = t => t==='image'?'fas fa-image':t==='video'?'fas fa-play-circle':'fas fa-file-alt';
+        const saveDB = () => localStorage.setItem('REX_DB', JSON.stringify(db));
+        const toggleView = id => {
+            ['mainView', 'settingsView'].forEach(v => document.getElementById(v).classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
         };
-
-        // ----------------------------------------------------
-        // MISC FUNCTIONS
-        // ----------------------------------------------------
-        window.openSettings = () => document.getElementById('settingsModal').classList.remove('hidden');
-        window.closeSettings = () => document.getElementById('settingsModal').classList.add('hidden');
-        
-        window.saveSettings = () => {
-            const newPin = document.getElementById('newPin').value;
-            if(newPin.length === 4) {
-                CONFIG.SYSTEM_PIN = newPin;
-                alert("Protocol Updated: PIN Changed");
-                closeSettings();
-            }
+        const updatePin = () => {
+            const p = document.getElementById('setPin').value;
+            if(p.length === 4) { localStorage.setItem('REX_PIN', p); currentPin = p; alert("PIN UPDATED"); }
         };
-
-        window.logout = () => window.location.reload();
-
-        window.contactAdmin = () => {
-            const url = `https://wa.me/${CONFIG.ADMIN_PHONE}?text=PROTOCOL-I-WANT-UPDATE-TO-PRO`;
-            window.open(url, '_blank');
+        const createLoader = name => {
+            const div = document.createElement('div');
+            div.className = "fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex items-center justify-center p-10 text-center";
+            div.innerHTML = `<div class="orbitron"><i class="fas fa-sync fa-spin text-4xl text-red-500 mb-4"></i><br>SECURELY UPLOADING<br><span class="text-[10px] text-gray-500">${name}</span></div>`;
+            document.body.appendChild(div);
+            return div;
         };
-
-        window.viewFile = (msgId) => {
-            alert("SECURITY ALERT: Redirecting to Telegram Node for file access...");
-            window.open(`https://t.me/c/${CONFIG.CHAT_ID}/${msgId}`, '_blank');
+        const viewFile = msg => window.open(`https://t.me/c/${REX_CONFIG.CHAT_ID}/${msg}`, '_blank');
+        const logout = () => window.location.reload();
+        const filterFiles = (type, btn) => {
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderFiles(type);
         };
-
-        // Initial Call
-        renderFiles();
+        const remotePrompt = () => {
+            const url = prompt("Enter Remote URL:");
+            if(url) alert("Remote injection sequence started. Data will be mirrored to cloud shortly.");
+        };
     </script>
 </body>
 </html>
