@@ -84,9 +84,50 @@
             position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
             z-index: 6000; display: none; align-items: center; justify-content: center; p: 6;
         }
+
+        /* --- NEW ADDITIONS FOR ALERT AND WELCOME ANIMATION --- */
+        #custom-alert-modal, #welcome-screen {
+            position: fixed; inset: 0; z-index: 99999;
+            display: none; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.9); backdrop-filter: blur(20px);
+        }
+        
+        .welcome-anim {
+            animation: welcomePop 2s ease-in-out forwards;
+        }
+        @keyframes welcomePop {
+            0% { opacity: 0; transform: scale(0.8) translateY(20px); filter: blur(10px); }
+            30% { opacity: 1; transform: scale(1.05) translateY(0); filter: blur(0); }
+            70% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+            100% { opacity: 0; transform: scale(1.1) translateY(-20px); filter: blur(15px); }
+        }
     </style>
 </head>
 <body>
+
+    <div id="custom-alert-modal">
+        <div class="glass-card p-8 w-[90%] max-w-sm text-center transform transition-all border border-red-500/30">
+            <div class="h-16 w-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-5 border border-red-500/20">
+                <i class="fas fa-shield-alt text-3xl text-red-500 animate-pulse"></i>
+            </div>
+            <h3 class="orbitron text-sm font-bold text-white mb-4 tracking-[3px] uppercase">Security Notice</h3>
+            <p class="text-[11px] text-gray-300 mb-3 leading-relaxed font-semibold">
+                ඔබ මෙම ඇප් එක සම්පූර්ණයෙන් close කලහොත් පමනක් ආරක්ශක සේවාව ක්‍රියාත්මක වෙන බව මතක තබා ගන්න.
+            </p>
+            <p class="text-[9px] text-gray-500 mb-8 uppercase tracking-widest">
+                Please remember that the security service will only be activated if you completely close this app.
+            </p>
+            <button onclick="closeCustomAlert()" class="w-full bg-red-600 hover:bg-red-700 py-4 rounded-xl font-bold uppercase text-[10px] tracking-[4px] transition">I Understand</button>
+        </div>
+    </div>
+
+    <div id="welcome-screen">
+        <div class="text-center" id="welcome-content">
+            <i class="fas fa-cloud text-5xl text-red-500 mb-4 drop-shadow-[0_0_15px_rgba(255,65,108,0.8)]"></i>
+            <h1 class="orbitron text-2xl font-black text-gray-300 tracking-[8px] uppercase drop-shadow-lg">Welcome To</h1>
+            <h1 class="orbitron text-4xl font-black text-red-500 tracking-[5px] italic mt-2 drop-shadow-[0_0_20px_rgba(255,65,108,0.6)]">Rex Cloud</h1>
+        </div>
+    </div>
 
     <div id="toast-error" class="fixed top-10 left-1/2 transform -translate-x-1/2 bg-red-600/90 text-white px-8 py-4 rounded-2xl shadow-[0_0_20px_rgba(255,0,0,0.5)] backdrop-blur-md hidden z-[9999] orbitron text-xs font-bold tracking-widest border border-red-400 transition-all">
         WRONG CODE
@@ -160,7 +201,7 @@
         </div>
 
         <div class="grid grid-cols-2 gap-4 mb-8">
-            <label class="glass-card p-6 flex flex-col items-center justify-center cursor-pointer border-dashed border-white/5 hover:bg-white/5 transition">
+            <label class="glass-card p-6 flex flex-col items-center justify-center cursor-pointer border-dashed border-white/5 hover:bg-white/5 transition" onmousedown="isSystemAction = true">
                 <i class="fas fa-cloud-upload-alt text-red-500 text-xl mb-3"></i>
                 <span class="text-[10px] font-black uppercase tracking-widest text-center">Push Data</span>
                 <input type="file" multiple id="file-input" class="hidden" onchange="handleFiles(this)">
@@ -169,7 +210,7 @@
                 <i class="fas fa-link text-blue-500 text-xl mb-3"></i>
                 <span class="text-[10px] font-black uppercase tracking-widest text-center">Mirror Link</span>
             </div>
-            <label class="col-span-2 glass-card p-6 flex flex-col items-center justify-center cursor-pointer border-emerald-500/20 hover:bg-emerald-500/5 transition">
+            <label class="col-span-2 glass-card p-6 flex flex-col items-center justify-center cursor-pointer border-emerald-500/20 hover:bg-emerald-500/5 transition" onmousedown="isSystemAction = true">
                 <i class="fas fa-camera text-emerald-500 text-2xl mb-3"></i>
                 <span class="text-[10px] font-black uppercase tracking-widest text-emerald-100">Open Camera</span>
                 <input type="file" accept="image/*,video/*" capture="environment" id="camera-input" class="hidden" onchange="handleFiles(this)">
@@ -219,6 +260,7 @@
         let SETTINGS = JSON.parse(localStorage.getItem('REX_CONFIG')) || { pin: null, isAuth: false, email: '' };
         let currentPinInput = "";
         let isSessionLocked = true;
+        let isSystemAction = false; 
 
         window.onload = () => {
             if(!SETTINGS.pin) {
@@ -230,8 +272,15 @@
             }
         };
 
-        // Re-lock logic modified: Only locks on full browser close or reload
-        // (Removed location.reload() on visibilitychange to prevent locking when minimized)
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden && SETTINGS.pin && !isSystemAction) {
+                location.reload(); 
+            }
+        });
+
+        window.onfocus = () => {
+            setTimeout(() => { isSystemAction = false; }, 1000);
+        };
 
         function handleInitialAuth() {
             const email = document.getElementById('input-email').value;
@@ -242,13 +291,16 @@
                 SETTINGS.pin = pin;
                 saveSettings();
                 
-                // Beautiful Alert Box Before Reloading
-                alert("ඔබ මෙම ඇප් එක සම්පූර්ණයෙන් close කලහොත් පමනක් ආරක්ශක සේවාව ක්‍රියාත්මක වෙන බව මතක තබා ගන්න");
-                
-                location.reload();
+                // Show Custom Alert Box
+                document.getElementById('custom-alert-modal').style.display = 'flex';
             } else {
                 alert("Enter valid Email & 4-digit PIN");
             }
+        }
+
+        // Action when acknowledging the alert
+        window.closeCustomAlert = function() {
+            location.reload();
         }
 
         function renderPinPad() {
@@ -277,8 +329,19 @@
                         if(currentPinInput === SETTINGS.pin) {
                             isSessionLocked = false;
                             document.getElementById('screen-lock').classList.add('hidden');
-                            document.getElementById('screen-dashboard').classList.remove('hidden');
-                            refreshDashboard();
+                            
+                            // Show Welcome Animation before Dashboard
+                            const welcomeScreen = document.getElementById('welcome-screen');
+                            const welcomeContent = document.getElementById('welcome-content');
+                            welcomeScreen.style.display = 'flex';
+                            welcomeContent.classList.add('welcome-anim');
+                            
+                            setTimeout(() => {
+                                welcomeScreen.style.display = 'none';
+                                document.getElementById('screen-dashboard').classList.remove('hidden');
+                                refreshDashboard();
+                            }, 1900); // Waits for animation to nearly finish
+                            
                         } else {
                             showError();
                             currentPinInput = "";
@@ -374,6 +437,7 @@
                     }
                 } catch(e) { alert("Upload Failed"); }
             }
+            isSystemAction = false; 
         }
 
         function renderFiles(filter, btn) {
