@@ -63,6 +63,7 @@
         .chip { padding: 10px 20px; border-radius: 15px; font-size: 9px; font-weight: 900; background: var(--glass-white); border: 1px solid var(--glass-border); text-transform: uppercase; }
         .chip-active { background: var(--accent-primary); border-color: var(--accent-primary); }
 
+        /* Smooth Dust Animation */
         .dust-out {
             animation: dustOut 0.8s ease-in forwards;
             pointer-events: none;
@@ -159,7 +160,7 @@
         </div>
 
         <div class="grid grid-cols-2 gap-4 mb-8">
-            <label class="glass-card p-6 flex flex-col items-center justify-center cursor-pointer border-dashed border-white/5 hover:bg-white/5 transition" onmousedown="isSystemAction = true">
+            <label class="glass-card p-6 flex flex-col items-center justify-center cursor-pointer border-dashed border-white/5 hover:bg-white/5 transition">
                 <i class="fas fa-cloud-upload-alt text-red-500 text-xl mb-3"></i>
                 <span class="text-[10px] font-black uppercase tracking-widest text-center">Push Data</span>
                 <input type="file" multiple id="file-input" class="hidden" onchange="handleFiles(this)">
@@ -168,7 +169,7 @@
                 <i class="fas fa-link text-blue-500 text-xl mb-3"></i>
                 <span class="text-[10px] font-black uppercase tracking-widest text-center">Mirror Link</span>
             </div>
-            <label class="col-span-2 glass-card p-6 flex flex-col items-center justify-center cursor-pointer border-emerald-500/20 hover:bg-emerald-500/5 transition" onmousedown="isSystemAction = true">
+            <label class="col-span-2 glass-card p-6 flex flex-col items-center justify-center cursor-pointer border-emerald-500/20 hover:bg-emerald-500/5 transition">
                 <i class="fas fa-camera text-emerald-500 text-2xl mb-3"></i>
                 <span class="text-[10px] font-black uppercase tracking-widest text-emerald-100">Open Camera</span>
                 <input type="file" accept="image/*,video/*" capture="environment" id="camera-input" class="hidden" onchange="handleFiles(this)">
@@ -185,6 +186,10 @@
         </div>
 
         <div id="file-container" class="space-y-4 pb-32"></div>
+
+        <div class="mt-20 pt-8 border-t border-dotted border-white/20 text-center pb-12">
+            <p class="text-[10px] text-gray-600 tracking-[4px] orbitron uppercase">Made By Xrurex</p>
+        </div>
     </section>
 
     <div id="panel-settings" class="fixed inset-0 bg-black/98 z-[5000] p-10 hidden">
@@ -214,7 +219,6 @@
         let SETTINGS = JSON.parse(localStorage.getItem('REX_CONFIG')) || { pin: null, isAuth: false, email: '' };
         let currentPinInput = "";
         let isSessionLocked = true;
-        let isSystemAction = false; // Flag for Upload/Camera
 
         window.onload = () => {
             if(!SETTINGS.pin) {
@@ -226,17 +230,8 @@
             }
         };
 
-        // Re-lock only if not an upload action
-        document.addEventListener("visibilitychange", () => {
-            if (document.hidden && SETTINGS.pin && !isSystemAction) {
-                location.reload(); 
-            }
-        });
-
-        // Reset flag after system dialog closes
-        window.onfocus = () => {
-            setTimeout(() => { isSystemAction = false; }, 1000);
-        };
+        // Re-lock logic modified: Only locks on full browser close or reload
+        // (Removed location.reload() on visibilitychange to prevent locking when minimized)
 
         function handleInitialAuth() {
             const email = document.getElementById('input-email').value;
@@ -246,6 +241,10 @@
                 SETTINGS.email = email.toUpperCase();
                 SETTINGS.pin = pin;
                 saveSettings();
+                
+                // Beautiful Alert Box Before Reloading
+                alert("ඔබ මෙම ඇප් එක සම්පූර්ණයෙන් close කලහොත් පමනක් ආරක්ශක සේවාව ක්‍රියාත්මක වෙන බව මතක තබා ගන්න");
+                
                 location.reload();
             } else {
                 alert("Enter valid Email & 4-digit PIN");
@@ -312,7 +311,7 @@
             if (window.PublicKeyCredential) {
                 try {
                     const auth = await navigator.credentials.get({ publicKey: { challenge: new Uint8Array([1,2,3,4]), allowCredentials: [], userVerification: "required" } });
-                    if(auth) handlePinInput(SETTINGS.pin);
+                    if(auth) handlePinInput(SETTINGS.pin); 
                 } catch(e) { console.log("Biometric Canceled."); }
             }
         }
@@ -375,7 +374,6 @@
                     }
                 } catch(e) { alert("Upload Failed"); }
             }
-            isSystemAction = false; // Reset after process
         }
 
         function renderFiles(filter, btn) {
