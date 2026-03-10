@@ -11,9 +11,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
     <style>
         :root {
@@ -82,17 +79,10 @@
             40%, 60% { transform: translate3d(4px, 0, 0); }
         }
 
-        #uploading-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px);
-            z-index: 20000; display: none; align-items: center; justify-content: center; flex-direction: column;
+        #remote-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            z-index: 6000; display: none; align-items: center; justify-content: center; p: 6;
         }
-
-        .nav-btn {
-            position: absolute; top: 50%; transform: translateY(-50%);
-            background: rgba(255,255,255,0.1); padding: 20px; border-radius: 50%;
-            cursor: pointer; transition: 0.3s;
-        }
-        .nav-btn:hover { background: var(--accent-primary); }
 
         #custom-alert-modal, #welcome-screen {
             position: fixed; inset: 0; z-index: 99999;
@@ -109,19 +99,34 @@
             70% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
             100% { opacity: 0; transform: scale(1.1) translateY(-20px); filter: blur(15px); }
         }
+
+        /* --- NEW ANIMATIONS ADDED BY REX --- */
+        .uploading-anim {
+            background: linear-gradient(90deg, rgba(255,65,108,0.05) 0%, rgba(255,65,108,0.2) 50%, rgba(255,65,108,0.05) 100%);
+            background-size: 200% 100%;
+            animation: pulseLoad 1.5s infinite linear;
+        }
+        @keyframes pulseLoad { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(15px); filter: blur(3px); }
+            100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+
+        .nav-btn {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(255,255,255,0.05); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1);
+            color: white; padding: 15px 20px; border-radius: 15px; cursor: pointer; transition: 0.3s;
+        }
+        .nav-btn:hover { background: rgba(255,65,108,0.4); }
+        .nav-left { left: 10px; }
+        .nav-right { right: 10px; }
     </style>
 </head>
 <body>
-
-    <div id="uploading-overlay">
-        <div class="text-center">
-            <div class="inline-block animate-spin mb-6">
-                <i class="fas fa-circle-notch text-5xl text-red-500"></i>
-            </div>
-            <h2 class="orbitron text-xl font-black tracking-[5px] text-white">UPLOADING...</h2>
-            <p class="text-[9px] text-gray-500 mt-2 uppercase tracking-widest">Securing your object in Rex Vault</p>
-        </div>
-    </div>
 
     <div id="custom-alert-modal">
         <div class="glass-card p-8 w-[90%] max-w-sm text-center transform transition-all border border-red-500/30">
@@ -129,7 +134,12 @@
                 <i class="fas fa-shield-alt text-3xl text-red-500 animate-pulse"></i>
             </div>
             <h3 class="orbitron text-sm font-bold text-white mb-4 tracking-[3px] uppercase">Security Notice</h3>
-            <p class="text-[11px] text-gray-300 mb-3 leading-relaxed font-semibold">ඔබ මෙම ඇප් එක සම්පූර්ණයෙන් close කලහොත් පමනක් ආරක්ශක සේවාව ක්‍රියාත්මක වෙන බව මතක තබා ගන්න.</p>
+            <p class="text-[11px] text-gray-300 mb-3 leading-relaxed font-semibold">
+                ඔබ මෙම ඇප් එක සම්පූර්ණයෙන් close කලහොත් පමනක් ආරක්ශක සේවාව ක්‍රියාත්මක වෙන බව මතක තබා ගන්න.
+            </p>
+            <p class="text-[9px] text-gray-500 mb-8 uppercase tracking-widest">
+                Please remember that the security service will only be activated if you completely close this app.
+            </p>
             <button onclick="closeCustomAlert()" class="w-full bg-red-600 hover:bg-red-700 py-4 rounded-xl font-bold uppercase text-[10px] tracking-[4px] transition">I Understand</button>
         </div>
     </div>
@@ -137,13 +147,16 @@
     <div id="welcome-screen">
         <div class="text-center" id="welcome-content">
             <i class="fas fa-cloud text-5xl text-red-500 mb-4 drop-shadow-[0_0_15px_rgba(255,65,108,0.8)]"></i>
-            <h1 class="orbitron text-4xl font-black text-red-500 tracking-[5px] italic mt-2">Rex Cloud</h1>
+            <h1 class="orbitron text-2xl font-black text-gray-300 tracking-[8px] uppercase drop-shadow-lg">Welcome To</h1>
+            <h1 class="orbitron text-4xl font-black text-red-500 tracking-[5px] italic mt-2 drop-shadow-[0_0_20px_rgba(255,65,108,0.6)]">Rex Cloud</h1>
         </div>
     </div>
 
-    <div id="toast-error" class="fixed top-10 left-1/2 transform -translate-x-1/2 bg-red-600/90 text-white px-8 py-4 rounded-2xl hidden z-[9999] orbitron text-xs font-bold tracking-widest border border-red-400 text-center">WRONG CODE</div>
+    <div id="toast-error" class="fixed top-10 left-1/2 transform -translate-x-1/2 bg-red-600/90 text-white px-8 py-4 rounded-2xl shadow-[0_0_20px_rgba(255,0,0,0.5)] backdrop-blur-md hidden z-[9999] orbitron text-xs font-bold tracking-widest border border-red-400 transition-all text-center">
+        WRONG CODE
+    </div>
 
-    <div id="remote-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[6000] hidden items-center justify-center p-6">
+    <div id="remote-modal">
         <div class="glass-card p-8 w-full max-w-sm text-center">
             <h3 class="orbitron text-xs mb-6 text-blue-400">MIRROR INJECTION</h3>
             <input type="text" id="remote-url" placeholder="PASTE DIRECT LINK HERE" class="rex-input mb-4">
@@ -155,32 +168,34 @@
     </div>
 
     <div id="media-viewer">
-        <button onclick="closeViewer()" class="absolute top-8 right-8 text-4xl text-white/50 z-50">&times;</button>
+        <button onclick="closeViewer()" class="absolute top-8 right-8 text-4xl text-white/50 z-[10002]">&times;</button>
+        <button id="btn-prev" onclick="prevMedia()" class="nav-btn nav-left hidden z-[10002]"><i class="fas fa-chevron-left"></i></button>
+        <button id="btn-next" onclick="nextMedia()" class="nav-btn nav-right hidden z-[10002]"><i class="fas fa-chevron-right"></i></button>
         
-        <div onclick="navigateViewer(-1)" class="nav-btn left-4"><i class="fas fa-chevron-left text-xl"></i></div>
-        <div onclick="navigateViewer(1)" class="nav-btn right-4"><i class="fas fa-chevron-right text-xl"></i></div>
-
-        <div id="viewer-content" class="max-w-[95%] max-h-[85%] flex items-center justify-center"></div>
-        <p id="viewer-name" class="mt-6 orbitron text-[10px] text-gray-500"></p>
+        <div id="viewer-content" class="max-w-[90%] max-h-[85%] flex items-center justify-center relative"></div>
+        <p id="viewer-name" class="mt-6 orbitron text-[10px] text-gray-500 absolute bottom-10 text-center w-full"></p>
     </div>
 
     <section id="screen-auth" class="min-h-screen flex items-center justify-center p-6 hidden">
-        <div id="auth-card" class="glass-card p-10 w-full max-w-md text-center">
+        <div id="auth-card" class="glass-card p-10 w-full max-w-md text-center transition-all duration-300">
             <h1 class="orbitron text-4xl font-black mb-6 italic text-red-500">REX CLOUD</h1>
+            
             <div class="flex gap-2 mb-8 bg-black/30 p-1 rounded-xl">
-                <button id="btn-tab-reg" onclick="switchTab('reg')" class="flex-1 py-3 rounded-lg text-[10px] font-bold uppercase bg-red-600/20 text-red-500">Register</button>
-                <button id="btn-tab-log" onclick="switchTab('log')" class="flex-1 py-3 rounded-lg text-[10px] font-bold uppercase text-gray-500">Login</button>
+                <button id="btn-tab-reg" onclick="switchTab('reg')" class="flex-1 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest bg-red-600/20 text-red-500 transition">Register</button>
+                <button id="btn-tab-log" onclick="switchTab('log')" class="flex-1 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest text-gray-500 transition">Login</button>
             </div>
+
             <div id="form-reg" class="space-y-4">
                 <input type="email" id="reg-email" placeholder="YOUR EMAIL" class="rex-input">
                 <input type="password" id="reg-pass" placeholder="SET PASSWORD" class="rex-input">
                 <input type="password" id="reg-pin" placeholder="SET 4-DIGIT PIN" class="rex-input" maxlength="4">
-                <button onclick="handleRegister()" class="w-full bg-red-600 py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest mt-4">Create Vault</button>
+                <button onclick="handleRegister()" class="w-full bg-red-600 hover:bg-red-700 py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest mt-4 transition">Create Vault</button>
             </div>
+
             <div id="form-log" class="space-y-4 hidden">
                 <input type="email" id="log-email" placeholder="YOUR EMAIL" class="rex-input">
                 <input type="password" id="log-pass" placeholder="YOUR PASSWORD" class="rex-input">
-                <button onclick="handleLogin()" class="w-full bg-blue-600 py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest mt-4">Access Vault</button>
+                <button onclick="handleLogin()" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest mt-4 transition">Access Vault</button>
             </div>
         </div>
     </section>
@@ -190,11 +205,12 @@
             <div class="h-20 w-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-red-500/20" onclick="triggerBiometric()">
                 <i class="fas fa-fingerprint text-4xl text-red-500"></i>
             </div>
+            <h2 class="orbitron text-[10px] mb-8 tracking-[5px] text-gray-500 uppercase">System Encrypted</h2>
             <div id="pin-dots" class="flex justify-center gap-4 mb-10">
-                <div class="h-3 w-3 rounded-full border border-red-500/50"></div>
-                <div class="h-3 w-3 rounded-full border border-red-500/50"></div>
-                <div class="h-3 w-3 rounded-full border border-red-500/50"></div>
-                <div class="h-3 w-3 rounded-full border border-red-500/50"></div>
+                <div class="h-3 w-3 rounded-full border border-red-500/50 transition-all"></div>
+                <div class="h-3 w-3 rounded-full border border-red-500/50 transition-all"></div>
+                <div class="h-3 w-3 rounded-full border border-red-500/50 transition-all"></div>
+                <div class="h-3 w-3 rounded-full border border-red-500/50 transition-all"></div>
             </div>
             <div class="grid grid-cols-3 gap-4" id="pin-pad"></div>
         </div>
@@ -202,126 +218,357 @@
 
     <section id="screen-dashboard" class="min-h-screen p-6 hidden max-w-2xl mx-auto">
         <header class="flex justify-between items-center mb-10">
-            <div><h1 class="orbitron text-xl font-bold">REX CLOUD</h1><p id="user-tag" class="text-[9px] text-gray-500 font-bold uppercase"></p></div>
-            <button onclick="toggleSettings()" class="h-12 w-12 glass-card flex items-center justify-center text-gray-400"><i class="fas fa-cog"></i></button>
+            <div>
+                <h1 class="orbitron text-xl font-bold">REX CLOUD</h1>
+                <p id="user-tag" class="text-[9px] text-gray-500 font-bold uppercase tracking-widest"></p>
+            </div>
+            <button onclick="toggleSettings()" class="h-12 w-12 glass-card flex items-center justify-center text-gray-400 hover:text-white transition">
+                <i class="fas fa-cog"></i>
+            </button>
         </header>
+
         <div class="glass-card p-8 flex justify-between items-center mb-8 border-emerald-500/10">
-            <div><p class="text-[8px] font-black text-gray-500 uppercase tracking-[3px]">Vault Status</p><h2 class="orbitron text-2xl font-black unlimited-badge">UNLIMITED</h2></div>
-            <div class="text-right"><p id="stat-count" class="text-2xl font-black orbitron">0</p><p class="text-[8px] text-gray-500 font-bold uppercase">Objects Secured</p></div>
+            <div>
+                <p class="text-[8px] font-black text-gray-500 uppercase tracking-[3px] mb-1">Vault Status</p>
+                <h2 class="orbitron text-2xl font-black unlimited-badge">UNLIMITED</h2>
+            </div>
+            <div class="text-right">
+                <p id="stat-count" class="text-2xl font-black orbitron">0</p>
+                <p class="text-[8px] text-gray-500 font-bold uppercase">Objects Secured</p>
+            </div>
         </div>
+
         <div class="grid grid-cols-2 gap-4 mb-8">
-            <label class="glass-card p-6 flex flex-col items-center justify-center cursor-pointer border-dashed border-white/5"><i class="fas fa-cloud-upload-alt text-red-500 text-xl mb-3"></i><span class="text-[10px] font-black uppercase">Push Data</span><input type="file" multiple id="file-input" class="hidden" onchange="handleFiles(this)"></label>
-            <div onclick="openRemote()" class="glass-card p-6 flex flex-col items-center justify-center cursor-pointer"><i class="fas fa-link text-blue-500 text-xl mb-3"></i><span class="text-[10px] font-black uppercase">Mirror Link</span></div>
+            <label class="glass-card p-6 flex flex-col items-center justify-center cursor-pointer border-dashed border-white/5 hover:bg-white/5 transition" onmousedown="isSystemAction = true">
+                <i class="fas fa-cloud-upload-alt text-red-500 text-xl mb-3"></i>
+                <span class="text-[10px] font-black uppercase tracking-widest text-center">Push Data</span>
+                <input type="file" multiple id="file-input" class="hidden" onchange="handleFiles(this)">
+            </label>
+            <div onclick="openRemote()" class="glass-card p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition">
+                <i class="fas fa-link text-blue-500 text-xl mb-3"></i>
+                <span class="text-[10px] font-black uppercase tracking-widest text-center">Mirror Link</span>
+            </div>
+            <label class="col-span-2 glass-card p-6 flex flex-col items-center justify-center cursor-pointer border-emerald-500/20 hover:bg-emerald-500/5 transition" onmousedown="isSystemAction = true">
+                <i class="fas fa-camera text-emerald-500 text-2xl mb-3"></i>
+                <span class="text-[10px] font-black uppercase tracking-widest text-emerald-100">Open Camera</span>
+                <input type="file" accept="image/*,video/*" capture="environment" id="camera-input" class="hidden" onchange="handleFiles(this)">
+            </label>
         </div>
+
+        <div id="upload-queue" class="mb-8"></div>
+
         <div class="flex gap-2 overflow-x-auto pb-6 no-scrollbar mb-4">
             <button onclick="renderFiles('all', this)" class="chip-active chip">All</button>
             <button onclick="renderFiles('image', this)" class="chip">Photos</button>
             <button onclick="renderFiles('video', this)" class="chip">Videos</button>
             <button onclick="renderFiles('doc', this)" class="chip">Docs</button>
         </div>
+
         <div id="file-container" class="space-y-4 pb-32"></div>
+
+        <div class="mt-20 pt-8 border-t border-dotted border-white/20 text-center pb-12">
+            <p class="text-[10px] text-gray-600 tracking-[4px] orbitron uppercase">Made By Xrurex</p>
+        </div>
     </section>
 
     <div id="panel-settings" class="fixed inset-0 bg-black/98 z-[5000] p-10 hidden overflow-y-auto">
-        <div class="max-w-md mx-auto pt-6 text-center">
+        <div class="max-w-md mx-auto pt-6">
             <div class="flex justify-between items-center mb-10">
                 <h2 class="orbitron text-xl font-bold">SETTINGS</h2>
                 <button onclick="toggleSettings()" class="text-4xl text-gray-600">&times;</button>
             </div>
-            <button onclick="logout()" class="w-full py-5 text-red-500 font-black text-[10px] glass-card uppercase border-red-500/20">Log Out</button>
+
+            <div class="glass-card p-6 mb-8 text-left border border-white/5 relative overflow-hidden">
+                <div class="absolute top-[-10px] right-[-10px] p-4 opacity-[0.03]"><i class="fas fa-id-card text-8xl"></i></div>
+                <p class="text-[10px] text-red-500 mb-5 uppercase tracking-[3px] font-bold">Account Info</p>
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-[9px] text-gray-400 uppercase tracking-widest">Email</span>
+                    <span class="text-[10px] font-bold text-white truncate max-w-[150px]" id="disp-email">---</span>
+                </div>
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-[9px] text-gray-400 uppercase tracking-widest">Password</span>
+                    <span class="text-[10px] font-bold text-white tracking-widest" id="disp-pass">---</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-[9px] text-gray-400 uppercase tracking-widest">PIN Lock</span>
+                    <span class="text-[10px] font-black text-red-400 tracking-[5px]" id="disp-pin">---</span>
+                </div>
+            </div>
+
+            <div class="space-y-8">
+                <div class="glass-card p-8">
+                    <p class="text-[10px] text-gray-500 mb-6 uppercase">Change PIN</p>
+                    <input type="password" id="new-pin" placeholder="NEW PIN" class="rex-input mb-4 orbitron tracking-[10px]" maxlength="4">
+                    <button onclick="updatePin()" class="w-full bg-white text-black py-4 rounded-xl font-black text-[10px] uppercase">Update</button>
+                </div>
+                <button onclick="logout()" class="w-full py-5 text-red-500 font-black text-[10px] glass-card uppercase border-red-500/20">Log Out</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // --- FIREBASE CONFIG (මෙතනට ඔබේ Firebase Keys දමන්න) ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyADiuQC24WIRTT__NI4mSgc7vjNpquy4CI",
-            databaseURL: "https://rexcloud-v1-default-rtdb.firebaseio.com/",
-            projectId: "rexcloud-v1",
-        };
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        // --- ඔබේ FIREBASE DATABASE URL එක මෙතන දාන්න ---
+        // උදාහරණයක්: "https://rex-cloud-default-rtdb.firebaseio.com"
+        const FIREBASE_DB_URL = "https://rexcloud-v1-default-rtdb.firebaseio.com/"; 
 
         const REX_ENV = {
             BOT_TOKEN: '8664449438:AAFEvs3o65mnfIuaZSC06kfcZ_09VoAFg90',
             CHAT_ID: '8097272918'
         };
 
-        let DB = [];
+        let DB = JSON.parse(localStorage.getItem('REX_VAULT')) || [];
+        let USERS = JSON.parse(localStorage.getItem('REX_USERS')) || {};
         let SESSION = JSON.parse(localStorage.getItem('REX_SESSION')) || null;
+        
         let currentPinInput = "";
-        let currentViewingIndex = -1;
-        let filteredList = [];
+        let isSessionLocked = true;
+        let isSystemAction = false; 
+        
+        // Slider Variables
+        let currentViewList = [];
+        let currentViewIndex = 0;
 
-        window.onload = () => {
+        // --- FIREBASE SYNC FUNCTIONS ---
+        async function loadFromFirebase() {
+            if(FIREBASE_DB_URL === "YOUR_DATABASE_URL" || !FIREBASE_DB_URL) return;
+            try {
+                const vaultRes = await fetch(`${FIREBASE_DB_URL}/VAULT.json`);
+                const usersRes = await fetch(`${FIREBASE_DB_URL}/USERS.json`);
+                if(vaultRes.ok) {
+                    const vaultData = await vaultRes.json();
+                    if(vaultData) { DB = vaultData; localStorage.setItem('REX_VAULT', JSON.stringify(DB)); }
+                }
+                if(usersRes.ok) {
+                    const usersData = await usersRes.json();
+                    if(usersData) { USERS = usersData; localStorage.setItem('REX_USERS', JSON.stringify(USERS)); }
+                }
+            } catch(e) { console.log("Firebase Load Error"); }
+        }
+
+        async function syncToFirebase() {
+            if(FIREBASE_DB_URL === "YOUR_DATABASE_URL" || !FIREBASE_DB_URL) return;
+            try {
+                await fetch(`${FIREBASE_DB_URL}/VAULT.json`, { method: 'PUT', body: JSON.stringify(DB) });
+                await fetch(`${FIREBASE_DB_URL}/USERS.json`, { method: 'PUT', body: JSON.stringify(USERS) });
+            } catch(e) { console.log("Firebase Sync Error"); }
+        }
+
+        window.onload = async () => {
+            await loadFromFirebase(); // Load data from DB first!
+            
             if(!SESSION) {
                 document.getElementById('screen-auth').classList.remove('hidden');
             } else {
                 document.getElementById('screen-lock').classList.remove('hidden');
                 document.getElementById('user-tag').innerText = SESSION.email;
+                
+                document.getElementById('disp-email').innerText = SESSION.email.toLowerCase();
+                if(USERS[SESSION.email]) {
+                    document.getElementById('disp-pass').innerText = USERS[SESSION.email].password;
+                    document.getElementById('disp-pin').innerText = USERS[SESSION.email].pin;
+                }
+                
                 renderPinPad();
-                syncDataFromFirebase();
             }
         };
 
-        // --- Firebase Sync Functions ---
-        async function syncDataFromFirebase() {
-            if(!SESSION) return;
-            const emailKey = SESSION.email.replace(/\./g, '_');
-            database.ref('users/' + emailKey + '/files').on('value', (snapshot) => {
-                DB = snapshot.val() || [];
-                refreshDashboard();
-            });
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden && SESSION && !isSystemAction) {
+                location.reload(); 
+            }
+        });
+
+        window.onfocus = () => { setTimeout(() => { isSystemAction = false; }, 1000); };
+
+        function showToast(msg) {
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            const toast = document.getElementById('toast-error');
+            toast.innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2000);
         }
 
-        async function saveDBToFirebase() {
-            if(!SESSION) return;
-            const emailKey = SESSION.email.replace(/\./g, '_');
-            await database.ref('users/' + emailKey + '/files').set(DB);
+        function triggerErrorAnim(cardId) {
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            const card = document.getElementById(cardId);
+            card.classList.add('shake');
+            setTimeout(() => card.classList.remove('shake'), 400);
         }
 
-        // --- Auth Functions ---
+        function switchTab(tab) {
+            const regForm = document.getElementById('form-reg');
+            const logForm = document.getElementById('form-log');
+            const btnReg = document.getElementById('btn-tab-reg');
+            const btnLog = document.getElementById('btn-tab-log');
+            
+            if(tab === 'reg') {
+                regForm.classList.remove('hidden'); logForm.classList.add('hidden');
+                btnReg.className = "flex-1 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest bg-red-600/20 text-red-500 transition";
+                btnLog.className = "flex-1 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest text-gray-500 transition";
+            } else {
+                logForm.classList.remove('hidden'); regForm.classList.add('hidden');
+                btnLog.className = "flex-1 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest bg-blue-600/20 text-blue-500 transition";
+                btnReg.className = "flex-1 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest text-gray-500 transition";
+            }
+        }
+
         async function handleRegister() {
             const email = document.getElementById('reg-email').value.toUpperCase();
             const pass = document.getElementById('reg-pass').value;
             const pin = document.getElementById('reg-pin').value;
-            if(!email.includes('@') || !pass || pin.length !== 4) return showToast("INVALID INPUTS");
             
-            const emailKey = email.replace(/\./g, '_');
-            const snapshot = await database.ref('users/' + emailKey).once('value');
-            if(snapshot.exists()) return showToast("ACCOUNT EXISTS");
-
-            await database.ref('users/' + emailKey).set({ password: pass, pin: pin, files: [] });
+            if(!email.includes('@') || !pass || pin.length !== 4) {
+                showToast("INVALID INPUTS"); triggerErrorAnim('auth-card'); return;
+            }
+            if(USERS[email]) {
+                showToast("ACCOUNT EXISTS"); triggerErrorAnim('auth-card'); return;
+            }
+            
+            USERS[email] = { password: pass, pin: pin };
+            localStorage.setItem('REX_USERS', JSON.stringify(USERS));
+            
             SESSION = { email: email, pin: pin };
             localStorage.setItem('REX_SESSION', JSON.stringify(SESSION));
+            
+            await syncToFirebase(); // Save to DB
+            
             document.getElementById('custom-alert-modal').style.display = 'flex';
         }
 
-        async function handleLogin() {
+        function handleLogin() {
             const email = document.getElementById('log-email').value.toUpperCase();
             const pass = document.getElementById('log-pass').value;
-            const emailKey = email.replace(/\./g, '_');
             
-            const snapshot = await database.ref('users/' + emailKey).once('value');
-            if(snapshot.exists() && snapshot.val().password === pass) {
-                SESSION = { email: email, pin: snapshot.val().pin };
+            if(!email.includes('@') || !pass) {
+                showToast("INVALID INPUTS"); triggerErrorAnim('auth-card'); return;
+            }
+            if(USERS[email] && USERS[email].password === pass) {
+                SESSION = { email: email, pin: USERS[email].pin };
                 localStorage.setItem('REX_SESSION', JSON.stringify(SESSION));
                 location.reload();
             } else {
-                showToast("WRONG PASSWORD");
+                showToast("WRONG PASSWORD"); triggerErrorAnim('auth-card');
             }
         }
 
-        // --- File Handling & UI ---
-        function showUploading(status) {
-            document.getElementById('uploading-overlay').style.display = status ? 'flex' : 'none';
+        window.closeCustomAlert = function() { location.reload(); }
+
+        function renderPinPad() {
+            const pad = document.getElementById('pin-pad');
+            pad.innerHTML = "";
+            for(let i=1; i<=9; i++) {
+                const b = document.createElement('button');
+                b.className = "glass-card py-6 font-bold orbitron text-xl active:bg-white/10";
+                b.innerText = i;
+                b.onclick = () => handlePinInput(i);
+                pad.appendChild(b);
+            }
+            const zero = document.createElement('button');
+            zero.className = "col-start-2 glass-card py-6 font-bold orbitron text-xl";
+            zero.innerText = "0";
+            zero.onclick = () => handlePinInput(0);
+            pad.appendChild(zero);
+        }
+
+        function handlePinInput(n) {
+            if(currentPinInput.length < 4) {
+                currentPinInput += n;
+                updatePinVisuals();
+                if(currentPinInput.length === 4) {
+                    setTimeout(() => {
+                        if(currentPinInput === SESSION.pin) {
+                            isSessionLocked = false;
+                            document.getElementById('screen-lock').classList.add('hidden');
+                            
+                            const welcomeScreen = document.getElementById('welcome-screen');
+                            const welcomeContent = document.getElementById('welcome-content');
+                            welcomeScreen.style.display = 'flex';
+                            welcomeContent.classList.add('welcome-anim');
+                            
+                            setTimeout(() => {
+                                welcomeScreen.style.display = 'none';
+                                document.getElementById('screen-dashboard').classList.remove('hidden');
+                                refreshDashboard();
+                            }, 1900); 
+                            
+                        } else {
+                            showToast("WRONG CODE"); triggerErrorAnim('lock-card');
+                            currentPinInput = ""; updatePinVisuals();
+                        }
+                    }, 200);
+                }
+            }
+        }
+
+        function updatePinVisuals() {
+            const dots = document.querySelectorAll('#pin-dots div');
+            dots.forEach((d, i) => {
+                d.style.background = i < currentPinInput.length ? '#ff416c' : 'transparent';
+                d.style.boxShadow = i < currentPinInput.length ? '0 0 15px #ff416c' : 'none';
+            });
+        }
+
+        async function triggerBiometric() {
+            if (window.PublicKeyCredential) {
+                try {
+                    const auth = await navigator.credentials.get({ publicKey: { challenge: new Uint8Array([1,2,3,4]), allowCredentials: [], userVerification: "required" } });
+                    if(auth) handlePinInput(SESSION.pin); 
+                } catch(e) { console.log("Biometric Canceled."); }
+            }
+        }
+
+        function openRemote() { document.getElementById('remote-modal').style.display = 'flex'; }
+        function closeRemote() { document.getElementById('remote-modal').style.display = 'none'; }
+
+        async function processRemote() {
+            const url = document.getElementById('remote-url').value;
+            if(!url) return;
+            closeRemote();
+            const qId = 'q-' + Date.now();
+            const queue = document.getElementById('upload-queue');
+            const qItem = document.createElement('div');
+            qItem.className = "p-4 glass-card mb-2 flex justify-between items-center uploading-anim border border-blue-500/30 rounded-xl";
+            qItem.id = qId;
+            qItem.innerHTML = `<span class="text-[10px] text-blue-400 font-bold tracking-widest uppercase"><i class="fas fa-spinner fa-spin mr-3"></i>MIRRORING OBJECT...</span>`;
+            queue.appendChild(qItem);
+
+            try {
+                const res = await fetch(`https://api.telegram.org/bot${REX_ENV.BOT_TOKEN}/sendDocument`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ chat_id: REX_ENV.CHAT_ID, document: url })
+                });
+                const data = await res.json();
+                if(data.ok) {
+                    const fileObj = {
+                        id: Date.now(),
+                        name: data.result.document.file_name || "Remote_File",
+                        size: data.result.document.file_size || 0,
+                        type: data.result.document.mime_type || '',
+                        fileId: data.result.document.file_id,
+                        cat: (data.result.document.mime_type || '').includes('image') ? 'image' : 'doc',
+                        date: new Date().toLocaleDateString(),
+                        owner: SESSION.email
+                    };
+                    DB.unshift(fileObj); await saveDB(); refreshDashboard();
+                }
+                qItem.remove();
+            } catch(e) { alert("Fetch Failed"); qItem.remove(); }
         }
 
         async function handleFiles(input) {
             const files = Array.from(input.files);
-            if(files.length > 0) showUploading(true);
+            const queue = document.getElementById('upload-queue');
 
             for(const file of files) {
+                const qId = 'up-' + Date.now() + Math.random().toString().substring(2,5);
+                const qItem = document.createElement('div');
+                qItem.id = qId;
+                // UPLOADING ANIMATION ADDED HERE
+                qItem.className = "p-4 glass-card mb-3 flex justify-between items-center uploading-anim border border-red-500/30 rounded-xl";
+                qItem.innerHTML = `<span class="text-[10px] text-white font-bold tracking-widest uppercase"><i class="fas fa-spinner fa-spin mr-3 text-red-500"></i>Uploading: <span class="text-gray-400">${file.name.substring(0, 15)}...</span></span>`;
+                queue.appendChild(qItem);
+
                 const formData = new FormData();
                 formData.append('chat_id', REX_ENV.CHAT_ID);
                 formData.append('document', file);
@@ -333,40 +580,17 @@
                             id: Date.now() + Math.random(),
                             name: file.name, size: file.size, type: file.type,
                             fileId: data.result.document.file_id,
-                            cat: file.type.includes('image') ? 'image' : (file.type.includes('video') ? 'video' : 'doc')
+                            cat: file.type.includes('image') ? 'image' : (file.type.includes('video') ? 'video' : 'doc'),
+                            owner: SESSION.email
                         });
-                        await saveDBToFirebase();
+                        await saveDB(); refreshDashboard();
                     }
-                } catch(e) { alert("Upload Failed"); }
+                } catch(e) { showToast("UPLOAD FAILED"); }
+                document.getElementById(qId).remove();
             }
-            showUploading(false);
+            isSystemAction = false; 
         }
 
-        async function processRemote() {
-            const url = document.getElementById('remote-url').value;
-            if(!url) return;
-            closeRemote();
-            showUploading(true);
-            try {
-                const res = await fetch(`https://api.telegram.org/bot${REX_ENV.BOT_TOKEN}/sendDocument`, {
-                    method: 'POST', headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ chat_id: REX_ENV.CHAT_ID, document: url })
-                });
-                const data = await res.json();
-                if(data.ok) {
-                    DB.unshift({
-                        id: Date.now(), name: data.result.document.file_name || "Remote_File",
-                        size: data.result.document.file_size || 0, type: data.result.document.mime_type || '',
-                        fileId: data.result.document.file_id,
-                        cat: (data.result.document.mime_type || '').includes('image') ? 'image' : 'doc'
-                    });
-                    await saveDBToFirebase();
-                } else { showToast("USE DIRECT LINK"); }
-            } catch(e) { showToast("Fetch Failed"); }
-            showUploading(false);
-        }
-
-        // --- Gallery Viewer with Navigation ---
         function renderFiles(filter, btn) {
             if(btn) {
                 document.querySelectorAll('.chip').forEach(c => c.classList.remove('chip-active'));
@@ -374,14 +598,19 @@
             }
             const cont = document.getElementById('file-container');
             cont.innerHTML = "";
-            filteredList = filter === 'all' ? DB : DB.filter(f => f.cat === filter);
             
-            filteredList.forEach((f, index) => {
+            const userFiles = DB.filter(f => f.owner === SESSION.email);
+            const filtered = filter === 'all' ? userFiles : userFiles.filter(f => f.cat === filter);
+            
+            currentViewList = filtered; // Update slider list
+            
+            filtered.forEach(f => {
                 const div = document.createElement('div');
                 div.id = 'node-' + f.id;
-                div.className = "glass-card p-5 flex justify-between items-center transition-all";
+                // FADE IN ANIMATION CLASS ADDED HERE (fade-in-up)
+                div.className = "glass-card p-5 flex justify-between items-center transition-all duration-500 fade-in-up";
                 div.innerHTML = `
-                    <div class="flex items-center gap-4 flex-1 cursor-pointer" onclick="openViewer(${index})">
+                    <div class="flex items-center gap-4 flex-1 cursor-pointer" onclick="openViewer('${f.id}')">
                         <i class="fas ${f.cat === 'image' ? 'fa-image text-red-500' : (f.cat === 'video' ? 'fa-play text-blue-500' : 'fa-file')}"></i>
                         <div class="overflow-hidden">
                             <p class="text-[11px] font-bold truncate max-w-[150px]">${f.name}</p>
@@ -392,93 +621,85 @@
                 `;
                 cont.appendChild(div);
             });
-            document.getElementById('stat-count').innerText = DB.length;
-        }
-
-        async function openViewer(index) {
-            currentViewingIndex = index;
-            const file = filteredList[index];
-            const viewer = document.getElementById('media-viewer');
-            const content = document.getElementById('viewer-content');
-            viewer.style.display = 'flex';
-            content.innerHTML = `<i class="fas fa-circle-notch fa-spin text-2xl text-red-500"></i>`;
             
-            const pathRes = await fetch(`https://api.telegram.org/bot${REX_ENV.BOT_TOKEN}/getFile?file_id=${file.fileId}`);
-            const pathData = await pathRes.json();
-            const url = `https://api.telegram.org/file/bot${REX_ENV.BOT_TOKEN}/${pathData.result.file_path}`;
-
-            if(file.type.includes('image')) content.innerHTML = `<img src="${url}" class="max-w-full max-h-[70vh] rounded-2xl">`;
-            else if(file.type.includes('video')) content.innerHTML = `<video src="${url}" controls autoplay class="max-w-full rounded-2xl"></video>`;
-            else content.innerHTML = `<a href="${url}" target="_blank" class="bg-white text-black px-8 py-4 rounded-xl font-bold orbitron">OPEN FILE</a>`;
-            document.getElementById('viewer-name').innerText = file.name.toUpperCase();
-        }
-
-        function navigateViewer(dir) {
-            let next = currentViewingIndex + dir;
-            if(next >= 0 && next < filteredList.length) openViewer(next);
-        }
-
-        // --- Helpers ---
-        function closeViewer() { document.getElementById('media-viewer').style.display = 'none'; }
-        function showToast(msg) {
-            const t = document.getElementById('toast-error');
-            t.innerText = msg; t.classList.remove('hidden');
-            setTimeout(() => t.classList.add('hidden'), 2000);
-        }
-        function closeCustomAlert() { location.reload(); }
-        function toggleSettings() { document.getElementById('panel-settings').classList.toggle('hidden'); }
-        function logout() { localStorage.removeItem('REX_SESSION'); location.reload(); }
-        function refreshDashboard() { renderFiles('all'); }
-        function openRemote() { document.getElementById('remote-modal').classList.remove('hidden'); document.getElementById('remote-modal').style.display = 'flex'; }
-        function closeRemote() { document.getElementById('remote-modal').style.display = 'none'; }
-        
-        // PIN PAD & AUTH LOGIC (Existing from your code)
-        function renderPinPad() {
-            const pad = document.getElementById('pin-pad'); pad.innerHTML = "";
-            for(let i=1; i<=9; i++) {
-                const b = document.createElement('button'); b.className = "glass-card py-6 font-bold orbitron text-xl";
-                b.innerText = i; b.onclick = () => handlePinInput(i); pad.appendChild(b);
-            }
-            const zero = document.createElement('button'); zero.className = "col-start-2 glass-card py-6 font-bold orbitron text-xl";
-            zero.innerText = "0"; zero.onclick = () => handlePinInput(0); pad.appendChild(zero);
-        }
-
-        function handlePinInput(n) {
-            if(currentPinInput.length < 4) {
-                currentPinInput += n; updatePinVisuals();
-                if(currentPinInput.length === 4) {
-                    if(currentPinInput === SESSION.pin) {
-                        document.getElementById('screen-lock').classList.add('hidden');
-                        document.getElementById('welcome-screen').style.display = 'flex';
-                        document.getElementById('welcome-content').classList.add('welcome-anim');
-                        setTimeout(() => {
-                            document.getElementById('welcome-screen').style.display = 'none';
-                            document.getElementById('screen-dashboard').classList.remove('hidden');
-                            refreshDashboard();
-                        }, 1900);
-                    } else {
-                        showToast("WRONG CODE"); currentPinInput = ""; updatePinVisuals();
-                    }
-                }
-            }
-        }
-
-        function updatePinVisuals() {
-            const dots = document.querySelectorAll('#pin-dots div');
-            dots.forEach((d, i) => {
-                d.style.background = i < currentPinInput.length ? '#ff416c' : 'transparent';
-            });
+            document.getElementById('stat-count').innerText = userFiles.length; 
         }
 
         async function executeDelete(id) {
-            DB = DB.filter(f => f.id != id);
-            await saveDBToFirebase();
-            refreshDashboard();
+            const el = document.getElementById('node-' + id);
+            el.classList.add('dust-out');
+            setTimeout(async () => {
+                DB = DB.filter(f => f.id != id);
+                await saveDB();
+                refreshDashboard();
+            }, 700);
         }
 
-        function switchTab(tab) {
-            document.getElementById('form-reg').classList.toggle('hidden', tab !== 'reg');
-            document.getElementById('form-log').classList.toggle('hidden', tab !== 'log');
+        // SLIDER AND MEDIA VIEWER LOGIC ADDED HERE
+        async function openViewer(id) {
+            const fileIndex = currentViewList.findIndex(f => f.id == id);
+            if(fileIndex === -1) return;
+            
+            currentViewIndex = fileIndex;
+            const file = currentViewList[fileIndex];
+
+            // Show/Hide Next and Prev buttons
+            document.getElementById('btn-prev').classList.toggle('hidden', currentViewIndex <= 0);
+            document.getElementById('btn-next').classList.toggle('hidden', currentViewIndex >= currentViewList.length - 1);
+
+            const viewer = document.getElementById('media-viewer');
+            const content = document.getElementById('viewer-content');
+            viewer.style.display = 'flex';
+            content.innerHTML = `<i class="fas fa-circle-notch fa-spin text-4xl text-red-500"></i>`;
+            document.getElementById('viewer-name').innerText = file.name.toUpperCase();
+            
+            try {
+                const pathRes = await fetch(`https://api.telegram.org/bot${REX_ENV.BOT_TOKEN}/getFile?file_id=${file.fileId}`);
+                const pathData = await pathRes.json();
+                const url = `https://api.telegram.org/file/bot${REX_ENV.BOT_TOKEN}/${pathData.result.file_path}`;
+
+                if(file.type.includes('image')) content.innerHTML = `<img src="${url}" class="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl">`;
+                else if(file.type.includes('video')) content.innerHTML = `<video src="${url}" controls autoplay class="max-w-full max-h-[80vh] rounded-2xl"></video>`;
+                else content.innerHTML = `<a href="${url}" target="_blank" class="bg-white text-black px-8 py-4 rounded-xl font-bold text-[10px] orbitron">OPEN FILE</a>`;
+            } catch(e) {
+                content.innerHTML = `<p class="text-red-500 font-bold orbitron text-xs">Loading Failed</p>`;
+            }
+        }
+
+        function prevMedia() { if(currentViewIndex > 0) openViewer(currentViewList[currentViewIndex - 1].id); }
+        function nextMedia() { if(currentViewIndex < currentViewList.length - 1) openViewer(currentViewList[currentViewIndex + 1].id); }
+
+        function closeViewer() { document.getElementById('media-viewer').style.display = 'none'; }
+        
+        function refreshDashboard() { renderFiles('all'); }
+        
+        function toggleSettings() { document.getElementById('panel-settings').classList.toggle('hidden'); }
+        
+        async function saveDB() { 
+            localStorage.setItem('REX_VAULT', JSON.stringify(DB)); 
+            await syncToFirebase(); // Auto push to DB
+        }
+        
+        async function updatePin() {
+            const val = document.getElementById('new-pin').value;
+            if(val.length === 4 && SESSION) { 
+                SESSION.pin = val; 
+                USERS[SESSION.email].pin = val; 
+                localStorage.setItem('REX_SESSION', JSON.stringify(SESSION)); 
+                localStorage.setItem('REX_USERS', JSON.stringify(USERS)); 
+                
+                await syncToFirebase(); // Save new PIN to DB
+                
+                document.getElementById('disp-pin').innerText = val; 
+                alert("PIN UPDATED"); 
+                toggleSettings(); 
+                document.getElementById('new-pin').value = '';
+            }
+        }
+
+        function logout() { 
+            localStorage.removeItem('REX_SESSION'); 
+            location.reload(); 
         }
     </script>
 </body>
